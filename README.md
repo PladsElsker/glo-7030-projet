@@ -1,1 +1,1 @@
-# GLO-7030-projet
+# glo-7030-projet
