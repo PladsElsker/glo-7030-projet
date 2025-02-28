@@ -1,8 +1,12 @@
+# Other files from tex compiler
+*.aux
+*.fls
+*.fdb_latexmk
+*.synctex*
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
-
 # C extensions
 *.so
 
