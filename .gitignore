@@ -3,6 +3,12 @@
 *.fls
 *.fdb_latexmk
 *.synctex*
+
+# Perhaps pdf too ?
+main.pdf
+
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
