@@ -3,9 +3,10 @@
 *.fls
 *.fdb_latexmk
 *.synctex*
-
-# Perhaps pdf too ?
-main.pdf
+*.out
+*.nav
+*.snm
+*.pdf
 
 
 
