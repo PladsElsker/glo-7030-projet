@@ -6,8 +6,6 @@
 *.out
 *.nav
 *.snm
-
-# Perhaps pdf too ?
 *.pdf
 
 
