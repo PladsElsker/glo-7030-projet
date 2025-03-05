@@ -20,7 +20,7 @@ class Downloader:
             except KeyError:
                 raise PostprocessConfigError(key, name)
 
-    def apply(self, directory: Path) -> Path:
+    def download(self, directory: Path) -> Path:
         raise NotImplementedError()
 
     def postprocess(self, path: Path) -> None:

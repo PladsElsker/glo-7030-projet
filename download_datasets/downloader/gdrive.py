@@ -19,7 +19,7 @@ class GoogleDriveDownloader(Downloader):
         except KeyError:
             raise ConfigError(GDRIVE_ID_ATTRIBUTE, name)
 
-    def apply(self, directory: Path) -> Path:
+    def download(self, directory: Path) -> Path:
         target = directory / self.output_file
         url = GDRIVE_URL_FORMAT.format(file_id=self.file_id)
 

@@ -25,5 +25,5 @@ class DatasetConfig:
             os.mkdir(save_to)
 
         for _, downloader in self.datasets.items():
-            downloader.apply(save_to)
+            downloader.download(save_to)
             downloader.postprocess(save_to)
