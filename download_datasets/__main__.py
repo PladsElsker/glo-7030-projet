@@ -7,7 +7,7 @@ from .config import DatasetConfig
 
 @click.command()
 @click.option('--output-directory', '-o', default='data', type=click.Path(file_okay=False, dir_okay=True), help='Directory to save downloaded files')
-@click.option('--config-file', '-c', default='download_datsets/config.json', type=click.Path(exists=True), help='Path to JSON config file')
+@click.option('--config-file', '-c', default='download_datasets/config.json', type=click.Path(exists=True), help='Path to JSON config file')
 def download_datasets(output_directory, config_file):
     with open(config_file, 'r') as f:
         config_json = json.load(f)
