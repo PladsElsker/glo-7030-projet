@@ -35,32 +35,32 @@
         "SaveName": "test_rgb_side_clips.zip",
         "Postprocess": ["Unzip", "Delete"]
     },
-    "English Translation Train": {
+    "Train English Translation": {
         "Type": "GoogleDrive",
         "Id": "1lq7ksWeD3FzaIwowRbe_BvCmSmOG12-f",
         "SaveName": "how2sign_train.csv"
     },
-    "English Translation Validation": {
+    "Validation English Translation": {
         "Type": "GoogleDrive",
         "Id": "1aBQUClTlZB504JtDISJ0DJlbuYUZCGu3",
         "SaveName": "how2sign_val.csv"
     },
-    "English Translation Test": {
+    "Test English Translation": {
         "Type": "GoogleDrive",
         "Id": "1ScxYnEjILZMn22qKjQj8Wyr_F0nha7kG",
         "SaveName": "how2sign_test.csv"
     },
-    "English Translation Realigned Train": {
+    "Train English Translation Realigned": {
         "Type": "GoogleDrive",
         "Id": "1dUHSoefk9OxKJnHrHPX--I4tpm9QD0ok",
         "SaveName": "how2sign_realigned_train.csv"
     },
-    "English Translation Realigned Validation": {
+    "Validation English Translation Realigned": {
         "Type": "GoogleDrive",
         "Id": "1Vpag7VPfdTCCJSao8Pz14rlPfekRMggI",
         "SaveName": "how2sign_realigned_val.csv"
     },
-    "English Translation Realigned Test": {
+    "Test English Translation Realigned": {
         "Type": "GoogleDrive",
         "Id": "1AgwBZW26kFHS4CWNMQTCMPGkBPkH3qCu",
         "SaveName": "how2sign_realigned_test.csv"
