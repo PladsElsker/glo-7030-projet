@@ -1,0 +1,68 @@
+{
+    "Train Green Screen RGB Front Clips": {
+        "Type": "GoogleDrive",
+        "Id": "1VX7n0jjW0pW3GEdgOks3z8nqE6iI6EnW",
+        "SaveName": "train_rgb_front_clips.zip",
+        "Postprocess": ["Unzip", "Delete"]
+    },
+    "Validation Green Screen RGB Front Clips": {
+        "Type": "GoogleDrive",
+        "Id": "1DhLH8tIBn9HsTzUJUfsEOGcP4l9EvOiO",
+        "SaveName": "val_rgb_front_clips.zip",
+        "Postprocess": ["Unzip", "Delete"]
+    },
+    "Test Green Screen RGB Front Clips": {
+        "Type": "GoogleDrive",
+        "Id": "1qTIXFsu8M55HrCiaGv7vZ7GkdB3ubjaG",
+        "SaveName": "test_rgb_front_clips.zip",
+        "Postprocess": ["Unzip", "Delete"]
+    },
+    "Train Green Screen RGB Side Clips": {
+        "Type": "GoogleDrive",
+        "Id": "1oiw861NGp4CKKFO3iuHGSCgTyQ-DXHW7",
+        "SaveName": "train_rgb_side_clips.zip",
+        "Postprocess": ["Unzip", "Delete"]
+    },
+    "Validation Green Screen RGB Side Clips": {
+        "Type": "GoogleDrive",
+        "Id": "1mxL7kJPNUzJ6zoaqJyxF1Krnjo4F-eQG",
+        "SaveName": "val_rgb_side_clips.zip",
+        "Postprocess": ["Unzip", "Delete"]
+    },
+    "Test Green Screen RGB Side Clips": {
+        "Type": "GoogleDrive",
+        "Id": "1j9v9P7UdMJ0_FVWg8H95cqx4DMSsrdbH",
+        "SaveName": "test_rgb_side_clips.zip",
+        "Postprocess": ["Unzip", "Delete"]
+    },
+    "English Translation Train": {
+        "Type": "GoogleDrive",
+        "Id": "1lq7ksWeD3FzaIwowRbe_BvCmSmOG12-f",
+        "SaveName": "how2sign_train.csv"
+    },
+    "English Translation Validation": {
+        "Type": "GoogleDrive",
+        "Id": "1aBQUClTlZB504JtDISJ0DJlbuYUZCGu3",
+        "SaveName": "how2sign_val.csv"
+    },
+    "English Translation Test": {
+        "Type": "GoogleDrive",
+        "Id": "1ScxYnEjILZMn22qKjQj8Wyr_F0nha7kG",
+        "SaveName": "how2sign_test.csv"
+    },
+    "English Translation Realigned Train": {
+        "Type": "GoogleDrive",
+        "Id": "1dUHSoefk9OxKJnHrHPX--I4tpm9QD0ok",
+        "SaveName": "how2sign_realigned_train.csv"
+    },
+    "English Translation Realigned Validation": {
+        "Type": "GoogleDrive",
+        "Id": "1Vpag7VPfdTCCJSao8Pz14rlPfekRMggI",
+        "SaveName": "how2sign_realigned_val.csv"
+    },
+    "English Translation Realigned Test": {
+        "Type": "GoogleDrive",
+        "Id": "1AgwBZW26kFHS4CWNMQTCMPGkBPkH3qCu",
+        "SaveName": "how2sign_realigned_test.csv"
+    }
+}
