@@ -8,7 +8,10 @@
             "module": "download_datasets",
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
-            "justMyCode": false
+            "justMyCode": false,
+            "args": [
+                "-o", "/mnt/data/plads/how2sign"
+            ]
         }
     ]
 }
