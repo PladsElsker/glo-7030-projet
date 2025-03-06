@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Download dataset",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "download_datasets",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": [
+                "-o", "/mnt/data/plads/how2sign"
+            ]
+        }
+    ]
+}

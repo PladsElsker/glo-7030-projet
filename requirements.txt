@@ -1,7 +1,14 @@
+beautifulsoup4==4.13.3
 certifi==2025.1.31
 charset-normalizer==3.4.1
 click==8.1.8
+filelock==3.17.0
+gdown==5.2.0
 idna==3.10
+loguru==0.7.3
+PySocks==1.7.1
 requests==2.32.3
+soupsieve==2.6
 tqdm==4.67.1
+typing_extensions==4.12.2
 urllib3==2.3.0
