@@ -14,7 +14,7 @@ class DatasetConfig:
                 downloader_type = v[DOWNLOADER_TYPE_ATTRIBUTE]
             except KeyError:
                 raise ConfigError(DOWNLOADER_TYPE_ATTRIBUTE, k)
-            
+
             try:
                 self.downloaders[k] = DOWNLOADER_MAP[downloader_type](v, k)
             except KeyError:

@@ -64,5 +64,23 @@
         "Type": "GoogleDrive",
         "Id": "1AgwBZW26kFHS4CWNMQTCMPGkBPkH3qCu",
         "SaveName": "how2sign_realigned_test.csv"
+    },
+    "Train 2D Keypoints": {
+        "Type": "GoogleDrive",
+        "Id": "1TBX7hLraMiiLucknM1mhblNVomO9-Y0r",
+        "SaveName": "train_2D_keypoints.tar.gz",
+        "Postprocess": ["Untar", "Delete"]
+    },
+    "Validation 2D Keypoints": {
+        "Type": "GoogleDrive",
+        "Id": "1JmEsU0GYUD5iVdefMOZpeWa_iYnmK_7w",
+        "SaveName": "val_2D_keypoints.tar.gz",
+        "Postprocess": ["Untar", "Delete"]
+    },
+    "Test 2D Keypoints": {
+        "Type": "GoogleDrive",
+        "Id": "1g8tzzW5BNPzHXlamuMQOvdwlHRa-29Vp",
+        "SaveName": "test_2D_keypoints.tar.gz",
+        "Postprocess": ["Untar", "Delete"]
     }
 }
