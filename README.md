@@ -1,4 +1,4 @@
-# Sign-terpreter
+# Sign-terpreter Project
 Session project for course [GLO-7030: Apprentissage par réseaux de neurones profonds](https://www.ulaval.ca/etudes/cours/glo-7030-apprentissage-par-reseaux-de-neurones-profonds)  
 This project provides a model capable of translating a sign language video into text
 
