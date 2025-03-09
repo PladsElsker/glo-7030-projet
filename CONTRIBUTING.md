@@ -11,6 +11,12 @@ All new features, bug fixes, and documentation updates should be developed on a 
 
 ---
 
+## :inbox_tray: Adding New Package & Building New Module  
+
+1. If you add new package to project, you must add it in `requirements.txt` too.
+2. If you building new module, you must write how to use it in `readme.md`.
+---
+
 ## :memo: **Commit Naming Rules**  
 1. You are free to name your commits as you see fit on your working branch.  
 2. When performing a **squash merge**, the commit message must be **clear and meaningful** in relation to the changes introduced.  
