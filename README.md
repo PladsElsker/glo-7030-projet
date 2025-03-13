@@ -75,20 +75,26 @@ The `resize_videos.py` script allows you to resize videos while preserving the f
 
 1. Resize videos in a specific directory to 224x224 (default size for ViViT and TimeSformer):
 ```bash
-python -m preprocessing.scripts.resize_videos --size 512 --data data/train_rgb_front_clips
+python -m preprocessing.scripts.resize_videos --size 224 --data data/train_rgb_front_clips
 ```
 
-2. Resize while preserving aspect ratio:
+2. Resize videos to 512x512 (for higher resolution models):
+```bash
+python -m preprocessing.scripts.resize_videos --size 512 --data data/train_rgb_front_clips
+```
+> :information_source: This will create a `512x512` directory and force videos to be square (may distort aspect ratio)
+
+3. Resize while preserving aspect ratio:
 ```bash
 python -m preprocessing.scripts.resize_videos --size 512 --data data/train_rgb_front_clips --not-square
 ```
 
-3. Process all clip directories:
+4. Process all clip directories:
 ```bash
 python -m preprocessing.scripts.resize_videos --size 224 --all
 ```
 
-4. Overwrite existing files:
+5. Overwrite existing files:
 ```bash
 python -m preprocessing.scripts.resize_videos --size 224 --data data/train_rgb_front_clips --overwrite
 ```
