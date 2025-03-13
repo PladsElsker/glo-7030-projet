@@ -9,12 +9,12 @@ PATHS = {
     'output_dir_template': '{size}x{size}',  # Template for output directory name
 }
 
-def get_resize_config(size=224):
+def get_resize_config(size=224, square=True):
     """Get resize configuration with specified size"""
     return {
         'width': size,      # Target width
         'height': size,     # Target height
-        'maintain_aspect': False,  # If True, maintains aspect ratio
+        'maintain_aspect': not square,  # If True, maintains aspect ratio (default: False)
     }
 
 # Processing configuration

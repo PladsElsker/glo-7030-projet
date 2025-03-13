@@ -5,9 +5,7 @@ from pathlib import Path
 from tqdm import tqdm
 from loguru import logger
 import sys
-from concurrent.futures import ThreadPoolExecutor
 
-# Add root directory to PYTHONPATH
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from preprocessing.config.video_resize_config import (
@@ -32,13 +30,24 @@ def resize_video(input_path, output_path, resize_config):
     """Resize a video using ffmpeg"""
     try:
         # Build ffmpeg command
-        cmd = [
-            'ffmpeg', '-i', str(input_path),
-            '-vf', f"scale={resize_config['width']}:{resize_config['height']}",
-            '-c:a', 'copy',  # Copy audio without modification
-            '-y' if PROCESSING_CONFIG['overwrite'] else '-n',  # Overwrite or not existing files
-            str(output_path)
-        ]
+        if resize_config['maintain_aspect']:
+            # Use scale with force_original_aspect_ratio=decrease to maintain aspect ratio
+            cmd = [
+                'ffmpeg', '-i', str(input_path),
+                '-vf', f"scale={resize_config['width']}:{resize_config['height']}:force_original_aspect_ratio=decrease",
+                '-c:a', 'copy',  # Copy audio without modification
+                '-y' if PROCESSING_CONFIG['overwrite'] else '-n',  # Overwrite or not existing files
+                str(output_path)
+            ]
+        else:
+            # Force exact dimensions
+            cmd = [
+                'ffmpeg', '-i', str(input_path),
+                '-vf', f"scale={resize_config['width']}:{resize_config['height']}",
+                '-c:a', 'copy',  # Copy audio without modification
+                '-y' if PROCESSING_CONFIG['overwrite'] else '-n',  # Overwrite or not existing files
+                str(output_path)
+            ]
         
         # Execute command
         result = subprocess.run(cmd, capture_output=True, text=True)
@@ -59,7 +68,6 @@ def process_video_file(input_path, output_path, resize_config):
         logger.warning(f"File not found: {input_path}")
         return False
 
-    # Create output path
     output_path = Path(output_path)
     
     # Create parent directory if necessary
@@ -79,10 +87,10 @@ def process_video_file(input_path, output_path, resize_config):
     
     return success
 
-def process_directory(clip_dir, size):
+def process_directory(clip_dir, size, square=True):
     """Process all video files in a directory"""
     # Get resize configuration
-    resize_config = get_resize_config(size)
+    resize_config = get_resize_config(size, square)
     
     # Construct paths
     raw_videos_path = Path(clip_dir) / PATHS['raw_videos_dir']
@@ -113,7 +121,7 @@ def process_directory(clip_dir, size):
     
     logger.info(f"Processing completed for {clip_dir}")
 
-def process_all_datasets(size):
+def process_all_datasets(size, square=True):
     """Process all video datasets"""
     data_root = Path(PATHS['data_root'])
     clip_dirs = get_clip_directories()
@@ -125,7 +133,7 @@ def process_all_datasets(size):
             continue
             
         logger.info(f"Processing dataset: {dataset}")
-        process_directory(dataset_path, size)
+        process_directory(dataset_path, size, square)
         logger.info(f"Completed processing dataset: {dataset}")
 
 def parse_args():
@@ -138,6 +146,8 @@ def parse_args():
                       help='Process all clip directories')
     parser.add_argument('--overwrite', action='store_true',
                       help='Overwrite existing files')
+    parser.add_argument('--not-square', action='store_true',
+                      help='Maintain original aspect ratio (default: force square)')
     return parser.parse_args()
 
 def main():
@@ -149,6 +159,10 @@ def main():
     
     setup_logger()
     logger.info(f"Starting video resizing process with size {args.size}x{args.size}")
+    if args.not_square:
+        logger.info("Maintaining original aspect ratio")
+    else:
+        logger.info("Forcing square output")
     
     if args.data:
         # Process specific directory
@@ -157,11 +171,11 @@ def main():
             logger.error(f"Directory not found: {data_path}")
             return
         logger.info(f"Processing specific directory: {data_path}")
-        process_directory(data_path, args.size)
+        process_directory(data_path, args.size, not args.not_square)
     elif args.all:
         # Process all clip directories
         logger.info("Processing all clip directories")
-        process_all_datasets(args.size)
+        process_all_datasets(args.size, not args.not_square)
     else:
         logger.error("Please specify either --data <directory> or --all")
         return
