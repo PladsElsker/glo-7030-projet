@@ -5,6 +5,7 @@ from pathlib import Path
 from tqdm import tqdm
 from loguru import logger
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
@@ -114,10 +115,23 @@ def process_directory(clip_dir, size, square=True):
     
     logger.info(f"Found {len(video_files)} video files to process in {raw_videos_path}")
     
-    # Process each video file
-    for video_file in video_files:
-        output_file = output_path / video_file.name
-        process_video_file(video_file, output_file, resize_config)
+    # Process videos in parallel using ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=PROCESSING_CONFIG['batch_size']) as executor:
+        # Submit all tasks
+        future_to_video = {
+            executor.submit(process_video_file, video_file, output_path / video_file.name, resize_config): video_file 
+            for video_file in video_files
+        }
+        
+        # Process results as they complete
+        for future in as_completed(future_to_video):
+            video_file = future_to_video[future]
+            try:
+                success = future.result()
+                if not success:
+                    logger.error(f"Failed to process {video_file}")
+            except Exception as e:
+                logger.error(f"Error processing {video_file}: {str(e)}")
     
     logger.info(f"Processing completed for {clip_dir}")
 

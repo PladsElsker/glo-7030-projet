@@ -103,3 +103,7 @@ python -m preprocessing.scripts.resize_videos --size 224 --data data/train_rgb_f
 
 - Original videos must be placed in the `raw_videos/` subdirectory
 - Resized videos will be saved in a subdirectory named according to the size (e.g., `224x224/`, `512x512/`)
+
+### Performance Analysis
+
+The batch size can be adjusted in `preprocessing/config/video_resize_config.py` by modifying the `batch_size` parameter in `PROCESSING_CONFIG` based on your CPU and VRAM capabilities, but the current sequential implementation is recommended for reliability and simplicity.

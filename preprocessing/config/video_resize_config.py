@@ -19,7 +19,7 @@ def get_resize_config(size=224, square=True):
 
 # Processing configuration
 PROCESSING_CONFIG = {
-    'batch_size': 10,  # Number of videos to process in parallel
+    'batch_size': 1,  # Number of videos to process in parallel
     'overwrite': False,  # If True, overwrites existing files
     'verbose': True,    # Displays progress information
 }
