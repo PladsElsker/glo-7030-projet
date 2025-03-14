@@ -38,7 +38,7 @@ python -m download_datasets [-o <output_folder>] [-c <config_file>]
 > You will be prompted in the console with instructions to complete the download if it cannot finish on its own.   
 > If that's the case, simply follow the instructions in the console. 
 
-## Developpment
+## Development
 Setup pre-commit
 ```shell
 pre-commit install
