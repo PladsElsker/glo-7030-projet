@@ -1,11 +1,11 @@
 import os
-import torch
-from torch.utils.data import Dataset
 import random
-from transformers import M2M100Tokenizer
 import pandas as pd
 from pathlib import Path
+import torch
+from torch.utils.data import Dataset
 import torchvision.io as io
+from transformers import M2M100Tokenizer
 
 
 VIDEO_ID = 'VIDEO_ID'
