@@ -1,39 +1,45 @@
-import os
 import random
-import pandas as pd
 from pathlib import Path
+from typing import Optional
+
+import pandas as pd
 import torch
 from torch.utils.data import Dataset
-import torchvision.io as io
+from torchvision import io
 from transformers import M2M100Tokenizer
 
-
-VIDEO_ID = 'VIDEO_ID'
-VIDEO_NAME = 'VIDEO_NAME'
-SENTENCE_ID = 'SENTENCE_ID'
-SENTENCE_NAME = 'SENTENCE_NAME'
-START = 'START'
-END = 'END'
-START_REALIGNED = 'START_REALIGNED'
-END_REALIGNED = 'END_REALIGNED'
-SENTENCE = 'SENTENCE'
+VIDEO_ID = "VIDEO_ID"
+VIDEO_NAME = "VIDEO_NAME"
+SENTENCE_ID = "SENTENCE_ID"
+SENTENCE_NAME = "SENTENCE_NAME"
+START = "START"
+END = "END"
+START_REALIGNED = "START_REALIGNED"
+END_REALIGNED = "END_REALIGNED"
+SENTENCE = "SENTENCE"
 
 
 tokenizer = M2M100Tokenizer.from_pretrained("facebook/m2m100_418M")
 
 
 class How2SignDataset(Dataset):
-    def __init__(self, video_path, csv_config, data_augmentation=None, target_processor=None):
-        self.video_paths = {Path(file).stem: Path(video_path).resolve() / file for file in os.listdir(video_path)}
-        self.csv_config = pd.read_csv(csv_config, delimiter='\t')
+    def __init__(
+        self,
+        video_path: Path,
+        csv_config: Path,
+        data_augmentation: Optional[callable] = None,
+        target_processor: Optional[callable] = None,
+    ) -> None:
+        self.video_paths = {Path(file).stem: video_path.resolve() / file for file in video_path.iterdir()}
+        self.csv_config = pd.read_csv(str(csv_config), delimiter="\t")
         self.data_augmentation = data_augmentation
         self.target_processor = target_processor
         self.iterator_offset = 0
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.video_paths)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, dict]:
         idx += self.iterator_offset
         video_path = None
 
@@ -60,25 +66,22 @@ class How2SignDataset(Dataset):
 
 
 class RandomHorizontalFlipVideo:
-    def __init__(self, p=0.5):
+    def __init__(self, p: float = 0.5) -> None:
         self.p = p
 
-    def __call__(self, video):
+    def __call__(self, video: torch.Tensor) -> torch.Tensor:
         return torch.flip(video, dims=[3]) if random.random() < self.p else video
 
 
-def m2m100_target_processor(text, max_length=512, tgt_lang='en_XX'):
+def m2m100_target_processor(text: str, max_length: int = 512, tgt_lang: str = "en_XX") -> dict[str, torch.Tensor]:
     tokenizer.tgt_lang = tgt_lang
-    return tokenizer(
-        text,
-        add_special_tokens=True,
-        truncation=True,
-        max_length=max_length,
-        return_tensors="pt"
-    )
+    return tokenizer(text, add_special_tokens=True, truncation=True, max_length=max_length, return_tensors="pt")
 
 
-def collate_how2sign(batch, pad_token_id=tokenizer.pad_token_id):
+def collate_how2sign(
+    batch: list[dict[str, torch.Tensor]],
+    pad_token_id: int = tokenizer.pad_token_id,
+) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
     videos, targets = zip(*batch)
     max_frames = max(video.shape[0] for video in videos)
     padded_videos = []
