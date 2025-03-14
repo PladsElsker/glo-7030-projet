@@ -10,12 +10,7 @@ To install project's requirements, follow steps below:
     python -m venv .env
     ```
 
-2. Install requirements
-    ```shell
-    python -m pip install -r requirements.txt
-    ```
-
-3. Activate the new environment
+2. Activate the new environment
     1. Linux and Mac
 
         ```shell
@@ -26,6 +21,11 @@ To install project's requirements, follow steps below:
         ```shell
         .\.env\Scripts\activate
         ```
+
+3. Install requirements
+    ```shell
+    python -m pip install -r requirements.txt
+    ```
 
 > :information_source: All these commands are to be executed in the project root folder.
 
