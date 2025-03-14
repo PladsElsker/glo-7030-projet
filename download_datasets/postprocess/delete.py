@@ -8,10 +8,10 @@ from .postprocess import Postprocessor
 
 class Delete(Postprocessor):
     def apply(self, target: Path) -> None:
-        if Path.isfile(target):
-            Path.unlink(target)
+        if target.is_file():
+            target.unlink()
             logger.success(f'Deleted "{target}".')
-        elif Path.isdir(target):
+        elif target.is_dir():
             shutil.rmtree(target)
             logger.success(f'Deleted "{target}".')
         else:

@@ -21,8 +21,7 @@ class DatasetConfig:
                 raise DownloaderConfigError(downloader_type, k) from e
 
     def download(self, save_to: Path) -> None:
-        if not Path.exists(save_to):
-            Path.mkdir(save_to)
+        save_to.mkdir(parents=True, exist_ok=True)
 
         for _, downloader in self.downloaders.items():
             downloader.download(save_to)

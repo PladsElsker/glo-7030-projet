@@ -10,12 +10,11 @@ from .postprocess import Postprocessor
 
 class Unzip(Postprocessor):
     def apply(self, target: Path) -> None:
-        if not Path.exists(target):
+        if not target.exists():
             logger.warning(f'Skipping unzip "{target}" as the file is already unzipped.')
             return
 
-        if not Path.exists(target.with_suffix("")):
-            Path.mkdir(target.with_suffix(""))
+        target.with_suffix("").mkdir(parents=True, exist_ok=True)
 
         self._extract_zip(str(target), str(target.with_suffix("")))
 
@@ -28,7 +27,7 @@ class Unzip(Postprocessor):
             for member in tqdm(members, desc=f'Extracting "{zip_path}"'):
                 try:
                     extracted_path = Path(extract_to) / member.filename
-                    Path.mkdir(extracted_path.parent, exist_ok=True, parents=True)
+                    extracted_path.parent.mkdir(exist_ok=True, parents=True)
                     with zip_ref.open(member) as source, Path.open(extracted_path, "wb") as target:
                         shutil.copyfileobj(source, target)
                 except (zipfile.BadZipFile, OSError):
