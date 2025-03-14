@@ -1,11 +1,10 @@
 import os
 import subprocess
-import argparse
 from pathlib import Path
 from tqdm import tqdm
 from loguru import logger
 import sys
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import click
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
@@ -30,14 +29,12 @@ def create_output_dirs(output_path):
 def resize_video(input_path, output_path, resize_config):
     """Resize a video using ffmpeg"""
     try:
-        # Build ffmpeg command
         if resize_config['maintain_aspect']:
-            # Use scale with force_original_aspect_ratio=decrease to maintain aspect ratio
             cmd = [
                 'ffmpeg', '-i', str(input_path),
                 '-vf', f"scale={resize_config['width']}:{resize_config['height']}:force_original_aspect_ratio=decrease",
-                '-c:a', 'copy',  # Copy audio without modification
-                '-y' if PROCESSING_CONFIG['overwrite'] else '-n',  # Overwrite or not existing files
+                '-c:a', 'copy', 
+                '-y' if PROCESSING_CONFIG['overwrite'] else '-n', 
                 str(output_path)
             ]
         else:
@@ -45,12 +42,11 @@ def resize_video(input_path, output_path, resize_config):
             cmd = [
                 'ffmpeg', '-i', str(input_path),
                 '-vf', f"scale={resize_config['width']}:{resize_config['height']}",
-                '-c:a', 'copy',  # Copy audio without modification
-                '-y' if PROCESSING_CONFIG['overwrite'] else '-n',  # Overwrite or not existing files
+                '-c:a', 'copy', 
+                '-y' if PROCESSING_CONFIG['overwrite'] else '-n',
                 str(output_path)
             ]
         
-        # Execute command
         result = subprocess.run(cmd, capture_output=True, text=True)
         
         if result.returncode != 0:
@@ -71,7 +67,6 @@ def process_video_file(input_path, output_path, resize_config):
 
     output_path = Path(output_path)
     
-    # Create parent directory if necessary
     output_path.parent.mkdir(parents=True, exist_ok=True)
     
     if output_path.exists() and not PROCESSING_CONFIG['overwrite']:
@@ -90,10 +85,8 @@ def process_video_file(input_path, output_path, resize_config):
 
 def process_directory(clip_dir, size, square=True):
     """Process all video files in a directory"""
-    # Get resize configuration
     resize_config = get_resize_config(size, square)
     
-    # Construct paths
     raw_videos_path = Path(clip_dir) / PATHS['raw_videos_dir']
     output_path = Path(clip_dir) / get_output_dir(size)
     
@@ -101,7 +94,6 @@ def process_directory(clip_dir, size, square=True):
         logger.error(f"Raw videos directory not found: {raw_videos_path}")
         return
     
-    # Create output directory
     create_output_dirs(output_path)
     
     # Find all video files
@@ -115,23 +107,10 @@ def process_directory(clip_dir, size, square=True):
     
     logger.info(f"Found {len(video_files)} video files to process in {raw_videos_path}")
     
-    # Process videos in parallel using ThreadPoolExecutor
-    with ThreadPoolExecutor(max_workers=PROCESSING_CONFIG['batch_size']) as executor:
-        # Submit all tasks
-        future_to_video = {
-            executor.submit(process_video_file, video_file, output_path / video_file.name, resize_config): video_file 
-            for video_file in video_files
-        }
-        
-        # Process results as they complete
-        for future in as_completed(future_to_video):
-            video_file = future_to_video[future]
-            try:
-                success = future.result()
-                if not success:
-                    logger.error(f"Failed to process {video_file}")
-            except Exception as e:
-                logger.error(f"Error processing {video_file}: {str(e)}")
+    # Process each video file
+    for video_file in video_files:
+        output_file = output_path / video_file.name
+        process_video_file(video_file, output_file, resize_config)
     
     logger.info(f"Processing completed for {clip_dir}")
 
@@ -150,46 +129,33 @@ def process_all_datasets(size, square=True):
         process_directory(dataset_path, size, square)
         logger.info(f"Completed processing dataset: {dataset}")
 
-def parse_args():
-    """Parse command line arguments"""
-    parser = argparse.ArgumentParser(description='Resize videos to specified dimensions')
-    parser.add_argument('--size', type=int, default=224,
-                      help='Target size for width and height (default: 224)')
-    parser.add_argument('--data', type=str, help='Specific directory to process')
-    parser.add_argument('--all', action='store_true',
-                      help='Process all clip directories')
-    parser.add_argument('--overwrite', action='store_true',
-                      help='Overwrite existing files')
-    parser.add_argument('--not-square', action='store_true',
-                      help='Maintain original aspect ratio (default: force square)')
-    return parser.parse_args()
-
-def main():
-    """Main function"""
-    args = parse_args()
-    
-    # Update configuration based on arguments
-    PROCESSING_CONFIG['overwrite'] = args.overwrite
+@click.command()
+@click.option('--size', default=224, help='Target size for width and height (default: 224)')
+@click.option('--data', help='Specific directory to process')
+@click.option('--all', is_flag=True, help='Process all clip directories')
+@click.option('--overwrite', is_flag=True, help='Overwrite existing files')
+@click.option('--not-square', is_flag=True, help='Maintain original aspect ratio (default: force square)')
+def main(size, data, all, overwrite, not_square):
+    """Resize videos to specified dimensions."""
+    PROCESSING_CONFIG['overwrite'] = overwrite
     
     setup_logger()
-    logger.info(f"Starting video resizing process with size {args.size}x{args.size}")
-    if args.not_square:
+    logger.info(f"Starting video resizing process with size {size}x{size}")
+    if not_square:
         logger.info("Maintaining original aspect ratio")
     else:
         logger.info("Forcing square output")
     
-    if args.data:
-        # Process specific directory
-        data_path = Path(args.data)
+    if data:
+        data_path = Path(data)
         if not data_path.exists():
             logger.error(f"Directory not found: {data_path}")
             return
         logger.info(f"Processing specific directory: {data_path}")
-        process_directory(data_path, args.size, not args.not_square)
-    elif args.all:
-        # Process all clip directories
+        process_directory(data_path, size, not not_square)
+    elif all:
         logger.info("Processing all clip directories")
-        process_all_datasets(args.size, not args.not_square)
+        process_all_datasets(size, not not_square)
     else:
         logger.error("Please specify either --data <directory> or --all")
         return
