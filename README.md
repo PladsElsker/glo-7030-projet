@@ -78,25 +78,25 @@ The `resize_videos.py` script allows you to resize videos while preserving the f
 python -m preprocessing.scripts.resize_videos --size 224 --data data/train_rgb_front_clips
 ```
 
-2. Resize videos to 512x512 (for higher resolution models):
+2. Resize videos to 512x512:
 ```bash
 python -m preprocessing.scripts.resize_videos --size 512 --data data/train_rgb_front_clips
 ```
-> :information_source: This will create a `512x512` directory and force videos to be square (may distort aspect ratio)
+> :information_source: This will resize the video width to 512 pixels while maintaining the original aspect ratio
 
-3. Resize while preserving aspect ratio:
-```bash
-python -m preprocessing.scripts.resize_videos --size 512 --data data/train_rgb_front_clips --not-square
-```
-
-4. Process all clip directories:
+3. Process all clip directories:
 ```bash
 python -m preprocessing.scripts.resize_videos --size 224 --all
 ```
 
-5. Overwrite existing files:
+4. Overwrite existing files:
 ```bash
 python -m preprocessing.scripts.resize_videos --size 224 --data data/train_rgb_front_clips --overwrite
+```
+
+5. Quiet mode (show only warnings and errors):
+```bash
+python -m preprocessing.scripts.resize_videos --size 224 --data data/train_rgb_front_clips --quiet
 ```
 
 ### Directory Structure
