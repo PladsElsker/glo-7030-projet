@@ -27,11 +27,6 @@ To install project's requirements, follow steps below:
         .\.env\Scripts\activate
         ```
 
-4. Setup black and ruff with pre-commit
-    ```shell
-    pre-commit install
-    ```
-
 > :information_source: All these commands are to be executed in the project root folder.
 
 ## Datasets
@@ -43,3 +38,13 @@ python -m download_datasets [-o <output_folder>] [-c <config_file>]
 > You will be prompted in the console with instructions to complete the download if it cannot finish on its own.   
 > If that's the case, simply follow the instructions in the console. 
 
+## Developpment
+Setup pre-commit
+```shell
+pre-commit install
+```
+
+To run pre-commit, simply commit with git, or run
+```
+pre-commit run --all-files
+```
