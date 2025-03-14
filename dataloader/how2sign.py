@@ -59,12 +59,12 @@ class How2SignDataset(Dataset):
         return video, target
 
 
-class RandomVerticalFlipVideo:
+class RandomHorizontalFlipVideo:
     def __init__(self, p=0.5):
         self.p = p
 
     def __call__(self, video):
-        return torch.flip(video, dims=[2]) if random.random() < self.p else video
+        return torch.flip(video, dims=[3]) if random.random() < self.p else video
 
 
 def m2m100_target_processor(text, max_length=512, tgt_lang='en_XX'):
