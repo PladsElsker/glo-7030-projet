@@ -38,8 +38,8 @@ class How2SignDataset(Dataset):
         video_path = None
 
         while video_path is None:
+            sentence_name = self.csv_config[SENTENCE_NAME][idx]
             try:
-                sentence_name = self.csv_config[SENTENCE_NAME][idx]
                 video_path = self.video_paths[sentence_name]
             except KeyError:
                 idx += 1
