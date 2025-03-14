@@ -17,13 +17,13 @@ class Untar(Postprocessor):
         if not os.path.exists(target.with_suffix('')):
             os.mkdir(target.with_suffix(''))
 
-        self._extract_zip(str(target), str(target.with_suffix('')))
+        self._extract_tar(str(target), str(target.with_suffix('')))
 
         logger.success(f'Untarred "{target}".')
 
     def _extract_tar(self, tar_path: str, extract_to: Path) -> None:
         logger.info(f'Extracting "{tar_path}"...')
-        with tarfile.ZipFile(tar_path, 'r') as tar_ref:
+        with tarfile.open(tar_path, 'r') as tar_ref:
             members = tar_ref.getmembers()
             for member in tqdm(members, desc=f'Extracting "{tar_path}"'):
                 try:
@@ -32,4 +32,4 @@ class Untar(Postprocessor):
                     with tar_ref.open(member) as source, open(extracted_path, 'wb') as target:
                         shutil.copyfileobj(source, target)
                 except (tarfile.TarError, OSError, IOError) as e:
-                    logger.error(f'Error unzipping "{member.filename}".')
+                    logger.error(f'Error untarring "{member.filename}".')
