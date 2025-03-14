@@ -2,7 +2,6 @@ import os
 import torch
 from torch.utils.data import Dataset, DataLoader
 import random
-import torchvision.transforms as T
 from transformers import M2M100Tokenizer
 import pandas as pd
 from pathlib import Path
@@ -79,7 +78,7 @@ def m2m100_target_processor(text, max_length=512, tgt_lang='en_XX'):
     )
 
 
-def collate_fn(batch, pad_token_id=tokenizer.pad_token_id):
+def collate_how2sign(batch, pad_token_id=tokenizer.pad_token_id):
     videos, targets = zip(*batch)
     max_frames = max(video.shape[0] for video in videos)
     padded_videos = []
@@ -104,18 +103,3 @@ def collate_fn(batch, pad_token_id=tokenizer.pad_token_id):
     padded_attention_masks = torch.stack(padded_attention_masks)
     padded_targets = {"input_ids": padded_input_ids, "attention_mask": padded_attention_masks}
     return padded_videos, padded_targets
-
-
-input_dir = '/mnt/data/plads/how2sign/train_rgb_front_clips/raw_videos'
-target_csv = '/mnt/data/plads/how2sign/how2sign_realigned_train.csv'
-
-dataset = How2SignDataset(
-    input_dir,
-    target_csv,
-    data_augmentation=RandomVerticalFlipVideo(),
-    target_processor=m2m100_target_processor
-)
-loader = DataLoader(dataset, batch_size=10, collate_fn=collate_fn)
-
-for batch_videos, batch_targets in loader:
-    print(batch_videos.shape, batch_targets["input_ids"].shape)
