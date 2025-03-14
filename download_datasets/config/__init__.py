@@ -1,1 +1,1 @@
-from .config import DatasetConfig
+from .config import DatasetConfig  # noqa: F401

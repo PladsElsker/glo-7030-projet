@@ -1,6 +1,6 @@
-import os
 import shutil
 from pathlib import Path
+
 from loguru import logger
 
 from .postprocess import Postprocessor
@@ -8,10 +8,10 @@ from .postprocess import Postprocessor
 
 class Delete(Postprocessor):
     def apply(self, target: Path) -> None:
-        if os.path.isfile(target):
-            os.remove(target)
+        if target.is_file():
+            target.unlink()
             logger.success(f'Deleted "{target}".')
-        elif os.path.isdir(target):
+        elif target.is_dir():
             shutil.rmtree(target)
             logger.success(f'Deleted "{target}".')
         else:
