@@ -3,37 +3,19 @@
         "Type": "GoogleDrive",
         "Id": "1VX7n0jjW0pW3GEdgOks3z8nqE6iI6EnW",
         "SaveName": "train_rgb_front_clips.zip",
-        "Postprocess": ["Unzip", "Delete"]
+        "Postprocess": ["Unpack", "Delete"]
     },
     "Validation Green Screen RGB Front Clips": {
         "Type": "GoogleDrive",
         "Id": "1DhLH8tIBn9HsTzUJUfsEOGcP4l9EvOiO",
         "SaveName": "val_rgb_front_clips.zip",
-        "Postprocess": ["Unzip", "Delete"]
+        "Postprocess": ["Unpack", "Delete"]
     },
     "Test Green Screen RGB Front Clips": {
         "Type": "GoogleDrive",
         "Id": "1qTIXFsu8M55HrCiaGv7vZ7GkdB3ubjaG",
         "SaveName": "test_rgb_front_clips.zip",
-        "Postprocess": ["Unzip", "Delete"]
-    },
-    "Train Green Screen RGB Side Clips": {
-        "Type": "GoogleDrive",
-        "Id": "1oiw861NGp4CKKFO3iuHGSCgTyQ-DXHW7",
-        "SaveName": "train_rgb_side_clips.zip",
-        "Postprocess": ["Unzip", "Delete"]
-    },
-    "Validation Green Screen RGB Side Clips": {
-        "Type": "GoogleDrive",
-        "Id": "1mxL7kJPNUzJ6zoaqJyxF1Krnjo4F-eQG",
-        "SaveName": "val_rgb_side_clips.zip",
-        "Postprocess": ["Unzip", "Delete"]
-    },
-    "Test Green Screen RGB Side Clips": {
-        "Type": "GoogleDrive",
-        "Id": "1j9v9P7UdMJ0_FVWg8H95cqx4DMSsrdbH",
-        "SaveName": "test_rgb_side_clips.zip",
-        "Postprocess": ["Unzip", "Delete"]
+        "Postprocess": ["Unpack", "Delete"]
     },
     "Train English Translation": {
         "Type": "GoogleDrive",
@@ -69,18 +51,18 @@
         "Type": "GoogleDrive",
         "Id": "1TBX7hLraMiiLucknM1mhblNVomO9-Y0r",
         "SaveName": "train_2D_keypoints.tar.gz",
-        "Postprocess": ["Untar", "Delete"]
+        "Postprocess": ["Unpack", "Delete"]
     },
     "Validation 2D Keypoints": {
         "Type": "GoogleDrive",
         "Id": "1JmEsU0GYUD5iVdefMOZpeWa_iYnmK_7w",
         "SaveName": "val_2D_keypoints.tar.gz",
-        "Postprocess": ["Untar", "Delete"]
+        "Postprocess": ["Unpack", "Delete"]
     },
     "Test 2D Keypoints": {
         "Type": "GoogleDrive",
         "Id": "1g8tzzW5BNPzHXlamuMQOvdwlHRa-29Vp",
         "SaveName": "test_2D_keypoints.tar.gz",
-        "Postprocess": ["Untar", "Delete"]
+        "Postprocess": ["Unpack", "Delete"]
     }
 }
