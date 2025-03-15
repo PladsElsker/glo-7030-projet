@@ -10,12 +10,7 @@ To install project's requirements, follow steps below:
     python -m venv .env
     ```
 
-2. Install requirements
-    ```shell
-    python -m pip install -r requirements.txt
-    ```
-
-3. Activate the new environment
+2. Activate the new environment
     1. Linux and Mac
 
         ```shell
@@ -27,13 +22,29 @@ To install project's requirements, follow steps below:
         .\.env\Scripts\activate
         ```
 
+3. Install requirements
+    ```shell
+    python -m pip install -r requirements.txt
+    ```
+
 > :information_source: All these commands are to be executed in the project root folder.
 
 ## Datasets
 To download the source datasets used for this project, run
-```shell
+```
 python -m download_datasets [-o <output_folder>] [-c <config_file>]
 ```
 > :warning: `gdown` may refuse to download some parts of the dataset automatically.   
 > You will be prompted in the console with instructions to complete the download if it cannot finish on its own.   
 > If that's the case, simply follow the instructions in the console. 
+
+## Developpment
+Setup pre-commit
+```shell
+pre-commit install
+```
+
+To run pre-commit, simply commit with git, or run
+```
+pre-commit run --all-files
+```

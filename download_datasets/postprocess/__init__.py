@@ -1,10 +1,9 @@
-from .unzip import Unzip
-from .untar import Untar
 from .delete import Delete
-
+from .untar import Untar
+from .unzip import Unzip
 
 POSTPROCESS_MAP = {
-    'Unzip': Unzip,
-    'Untar': Untar,
-    'Delete': Delete,
+    "Unzip": Unzip,
+    "Untar": Untar,
+    "Delete": Delete,
 }
