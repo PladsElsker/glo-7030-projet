@@ -3,6 +3,8 @@ from pathlib import Path
 
 from loguru import logger
 
+from download_datasets.path import without_suffix
+
 from .postprocess import Postprocessor
 
 
@@ -12,10 +14,7 @@ class Unpack(Postprocessor):
             logger.warning(f'Skipping unpack "{source}" as the file is already unpacked.')
             return
 
-        target_directory = source
-        while target_directory.suffix:
-            target_directory = target_directory.with_suffix("")
-
+        target_directory = without_suffix(source)
         target_directory.mkdir(exist_ok=True, parents=True)
         logger.info(f'Unpacking "{source}" to "{target_directory}"...')
         shutil.unpack_archive(source, target_directory)
