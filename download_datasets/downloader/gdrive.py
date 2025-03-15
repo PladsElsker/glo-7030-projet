@@ -5,7 +5,7 @@ from gdown.exceptions import FileURLRetrievalError
 from loguru import logger
 
 from download_datasets.config.exceptions import ConfigError
-from download_datasets.path import without_suffix
+from download_datasets.path_helpers import without_suffix
 
 from .downloader import Downloader
 

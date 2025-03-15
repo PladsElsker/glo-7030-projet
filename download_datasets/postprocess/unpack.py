@@ -3,7 +3,7 @@ from pathlib import Path
 
 from loguru import logger
 
-from download_datasets.path import without_suffix
+from download_datasets.path_helpers import without_suffix
 
 from .postprocess import Postprocessor
 
