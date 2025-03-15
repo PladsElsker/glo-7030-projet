@@ -42,7 +42,7 @@ Setup pre-commit
 pre-commit install
 ```
 
-Run pre-commit on all files
+To run pre-commit, simply commit with git, or run
 ```shell
 pre-commit run --all-files
 ```
