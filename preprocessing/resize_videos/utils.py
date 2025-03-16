@@ -4,8 +4,8 @@ from pathlib import Path
 
 from loguru import logger
 
-from resize_videos.video_processor import VideoProcessor
-from resize_videos.video_resize_config import DATASET_SPLITS, DATASET_VIEWS, PATHS
+from preprocessing.resize_videos.video_processor import VideoProcessor
+from preprocessing.resize_videos.video_resize_config import DATASET_SPLITS, DATASET_VIEWS, PATHS
 
 
 def create_output_dirs(output_path: Path) -> None:
