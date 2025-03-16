@@ -1,14 +1,15 @@
+import glob
 import sys
 from pathlib import Path
 
 import click
 from loguru import logger
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from resize_videos.utils import process_directory
-from resize_videos.video_processor import FFmpegProcessor
-from resize_videos.video_resize_config import PROCESSING_CONFIG, SUPPORTED_EXTENSIONS
+from preprocessing.resize_videos.utils import process_directory
+from preprocessing.resize_videos.video_processor import FFmpegProcessor
+from preprocessing.resize_videos.video_resize_config import PROCESSING_CONFIG, SUPPORTED_EXTENSIONS
 
 
 def setup_logger() -> None:
@@ -46,7 +47,8 @@ def main(data_folder: str, output_folder: str | None, size: int, verbose: bool, 
 
     processor = FFmpegProcessor()
 
-    data_paths = list(Path().glob(data_folder))
+    data_paths = glob.glob(data_folder, recursive=True)  # noqa: PTH207
+    data_paths = [Path(p) for p in data_paths]
 
     if not data_paths:
         logger.error(f"No directories found matching pattern: {data_folder}")
