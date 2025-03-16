@@ -70,44 +70,47 @@ pre-commit run --all-files
     - Extract the archive
     - Add the `bin` folder to your system's PATH
 
-## Video Resizing
-
-The `resize_videos.py` script allows you to resize videos while preserving the folder structure.
 
 ### Available Options
 
-- `--size`: Target size in pixels (default: 224)
-- `--data`: Specific directory to process
-- `--process-all`: Process all clip directories
-- `--overwrite`: Overwrite existing files
-- `--verbose/--quiet`: Show detailed logs (default: True)
+- `-s, --size`: Target size in pixels (default: 224)
+- `-d, --data-folder`: Path or glob pattern to the input data folder(s)
+- `-o, --output-folder`: Path to the output folder (optional, defaults to input folder)
+- `-v, --verbose`: Show detailed logs
+- `-q, --quiet`: Show only warnings and errors
+
+### Usage
+
+```shell
+python -m resize_videos -d <data_folder> [-o <output_folder>] [-s <size>] [-v] [-q]
+```
 
 ### Usage Examples
 
 1. Resize videos in a specific directory to 224x224 (default size for ViViT and TimeSformer):
 ```bash
-python -m preprocessing.resize_videos --size 224 --data data/train_rgb_front_clips
+python -m resize_videos -d data/train_rgb_front_clips -s 224
 ```
 
 2. Resize videos to 512x512:
 ```bash
-python -m preprocessing.resize_videos --size 512 --data data/train_rgb_front_clips
+python -m resize_videos -d data/train_rgb_front_clips -s 512
 ```
 > :information_source: This will create a `512x512` directory and force videos to be square (may distort aspect ratio)
 
-3. Process all clip directories:
+3. Process multiple directories using glob pattern:
 ```bash
-python -m preprocessing.resize_videos --size 224 --process-all
+python -m resize_videos -d "data/*_clips" -s 224
 ```
 
-4. Overwrite existing files:
+4. Specify a different output folder:
 ```bash
-python -m preprocessing.resize_videos --size 224 --data data/train_rgb_front_clips --overwrite
+python -m resize_videos -d "data/*_clips" -o data/output -s 224
 ```
 
-5. Quiet mode (show only warnings, successfully and errors):
+5. Quiet mode (show only warnings and errors):
 ```bash
-python -m preprocessing.resize_videos --size 224 --data data/train_rgb_front_clips --quiet
+python -m resize_videos -d data/train_rgb_front_clips -q
 ```
 
 ### Directory Structure
@@ -117,5 +120,5 @@ python -m preprocessing.resize_videos --size 224 --data data/train_rgb_front_cli
 
 ### Performance Analysis
 
-The batch size can be adjusted in `preprocessing/video_resize_config.py` by modifying the `batch_size` parameter in `PROCESSING_CONFIG` based on your CPU and VRAM capabilities, but the current sequential implementation is recommended for reliability and simplicity.
+The batch size can be adjusted in `resize_videos/video_resize_config.py` by modifying the `batch_size` parameter in `PROCESSING_CONFIG` based on your CPU and VRAM capabilities, but the current sequential implementation is recommended for reliability and simplicity.
 
