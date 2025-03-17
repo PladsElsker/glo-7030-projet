@@ -7,14 +7,12 @@ from loguru import logger
 
 
 class VideoProcessor(ABC):
-
     @abstractmethod
     def resize_video(self, input_path: Path, output_path: Path, config: dict[str, Any]) -> bool:
         pass
 
 
 class FFmpegProcessor(VideoProcessor):
-
     def resize_video(self, input_path: Path, output_path: Path, config: dict[str, Any]) -> bool:
         try:
             cmd = [
