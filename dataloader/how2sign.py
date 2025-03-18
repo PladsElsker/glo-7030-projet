@@ -34,18 +34,7 @@ class How2SignDataset(Dataset):
         self.csv_config = pd.read_csv(str(csv_config), delimiter="\t")
         self.data_augmentation = data_augmentation
         self.target_processor = target_processor
-
-        self.sentence_names = list(self.csv_config[SENTENCE_NAME])
-        self._prune_missing_sentence_names()
-
-    def _prune_missing_sentence_names(self) -> None:
-        valid_paths = set()
-
-        for sentence_name in self.sentence_names:
-            if sentence_name in self.video_paths:
-                valid_paths.add(sentence_name)
-
-        self.sentence_names = list(valid_paths)
+        self.sentence_names = [sentence_name for sentence_name in self.csv_config[SENTENCE_NAME] if sentence_name in self.video_paths]
 
     def __len__(self) -> int:
         return len(self.sentence_names)
