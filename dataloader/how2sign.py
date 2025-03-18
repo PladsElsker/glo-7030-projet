@@ -40,13 +40,13 @@ class How2SignDataset(Dataset):
 
     def _prune_missing_sentence_names(self) -> None:
         self.sentence_names = set(self.sentence_names)
-        to_remove = set()
+        valid_paths = set()
 
         for sentence_name in self.sentence_names:
-            if sentence_name not in self.video_paths:
-                to_remove.add(sentence_name)
+            if sentence_name in self.video_paths:
+                valid_paths.add(sentence_name)
 
-        self.sentence_names = self.sentence_names.difference(to_remove)
+        self.sentence_names.intersection_update(valid_paths)
         self.sentence_names = list(self.sentence_names)
 
     def __len__(self) -> int:
