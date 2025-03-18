@@ -39,7 +39,6 @@ class How2SignDataset(Dataset):
         self._prune_missing_sentence_names()
 
     def _prune_missing_sentence_names(self) -> None:
-        self.sentence_names = set(self.sentence_names)
         valid_paths = set()
 
         for sentence_name in self.sentence_names:
