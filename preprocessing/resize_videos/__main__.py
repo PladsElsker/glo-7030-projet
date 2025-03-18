@@ -7,8 +7,8 @@ from loguru import logger
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
+from preprocessing.resize_videos.resizer_processor import FFmpegProcessor
 from preprocessing.resize_videos.utils import process_directory
-from preprocessing.resize_videos.video_processor import FFmpegProcessor
 from preprocessing.resize_videos.video_resize_config import PROCESSING_CONFIG, SUPPORTED_EXTENSIONS
 
 
