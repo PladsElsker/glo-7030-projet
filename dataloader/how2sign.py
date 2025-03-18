@@ -46,8 +46,7 @@ class How2SignDataset(Dataset):
             if sentence_name in self.video_paths:
                 valid_paths.add(sentence_name)
 
-        self.sentence_names.intersection_update(valid_paths)
-        self.sentence_names = list(self.sentence_names)
+        self.sentence_names = list(valid_paths)
 
     def __len__(self) -> int:
         return len(self.sentence_names)
