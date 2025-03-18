@@ -35,10 +35,11 @@ class How2SignDataset(Dataset):
         self.data_augmentation = data_augmentation
         self.target_processor = target_processor
 
-        self.sentence_names = set(self.csv_config[SENTENCE_NAME])
+        self.sentence_names = list(self.csv_config[SENTENCE_NAME])
         self._prune_missing_sentence_names()
 
     def _prune_missing_sentence_names(self) -> None:
+        self.sentence_names = set(self.sentence_names)
         to_remove = set()
 
         for sentence_name in self.sentence_names:
