@@ -30,26 +30,30 @@ class How2SignDataset(Dataset):
         data_augmentation: Optional[callable] = None,
         target_processor: Optional[callable] = None,
     ) -> None:
-        self.video_paths = {Path(file).stem: video_path.resolve() / file for file in video_path.iterdir()}
+        self.video_paths = {Path(file).stem: file.resolve() for file in video_path.iterdir()}
         self.csv_config = pd.read_csv(str(csv_config), delimiter="\t")
         self.data_augmentation = data_augmentation
         self.target_processor = target_processor
-        self.iterator_offset = 0
+
+        self.sentence_names = set(self.csv_config[SENTENCE_NAME])
+        self._prune_missing_sentence_names()
+
+    def _prune_missing_sentence_names(self) -> None:
+        to_remove = set()
+
+        for sentence_name in self.sentence_names:
+            if sentence_name not in self.video_paths:
+                to_remove.add(sentence_name)
+
+        self.sentence_names = self.sentence_names.difference(to_remove)
+        self.sentence_names = list(self.sentence_names)
 
     def __len__(self) -> int:
-        return len(self.video_paths)
+        return len(self.sentence_names)
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, dict]:
-        idx += self.iterator_offset
-        video_path = None
-
-        while video_path is None:
-            sentence_name = self.csv_config[SENTENCE_NAME][idx]
-            try:
-                video_path = self.video_paths[sentence_name]
-            except KeyError:
-                idx += 1
-                self.iterator_offset += 1
+        sentence_name = self.sentence_names[idx]
+        video_path = self.video_paths[sentence_name]
 
         video, audio, info = io.read_video(video_path, pts_unit="sec")
         video = video.permute(0, 3, 1, 2)
