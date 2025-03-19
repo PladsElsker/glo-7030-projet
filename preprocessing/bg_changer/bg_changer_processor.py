@@ -9,7 +9,7 @@ from loguru import logger
 
 from preprocessing.video_processor import VideoProcessor
 
-from .config import LOWER_GREEN, UPPER_GREEN
+from .bg_changer_config import LOWER_GREEN, UPPER_GREEN
 
 
 class AutoSaveMode(Enum):
