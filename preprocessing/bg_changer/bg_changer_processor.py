@@ -19,8 +19,15 @@ class AutoSaveMode(Enum):
 
 class BackgroundChangerProcessor(VideoProcessor, ABC):
     @abstractmethod
-    def change_background(self, input_path: Path, output_path: Path, background_path: Path, save: AutoSaveMode) -> bool:
-        pass
+    def change_background(self, input_path: Path, output_path: Path, config: dict[str, AutoSaveMode | Path]) -> bool | np.ndarray:
+        """
+        Replace green background by a random video or picture.
+
+        :param input_path: Path to the input video file.
+        :param output_path: Path to save the processed video.
+        :param config: Dictionary with keys {"background_dir_path", "is_autosave_activated"}.
+        :return: True if successful, False otherwise.
+        """
 
 
 class OpenCVBackgroundChanger(BackgroundChangerProcessor):
@@ -29,13 +36,17 @@ class OpenCVBackgroundChanger(BackgroundChangerProcessor):
         self.size = size
         self.fps = 30
 
-    def change_background(
-        self,
-        input_path: Path,
-        output_path: Path,
-        background_path: Path,
-        save: AutoSaveMode = AutoSaveMode.YES,
-    ) -> bool | np.ndarray:
+    def __validate__paths__(self, paths: list[Path]) -> None:
+        pass
+
+    def change_background(self, input_path: Path, output_path: Path, config: dict[str, AutoSaveMode | Path]) -> bool | np.ndarray:
+
+        if "background_dir_path" not in config or "is_autosave_activated" not in config:
+            logger.error("Background directory and is_autosave_activated must be specified.")
+
+        is_autosave_activated = config["is_autosave_activated"]
+        background_path = Path(config["background_dir_path"])
+
         try:
             if not input_path.exists():
                 logger.error(f"Video not found: {input_path}")
@@ -85,7 +96,7 @@ class OpenCVBackgroundChanger(BackgroundChangerProcessor):
             video.release()
             cv2.destroyAllWindows()
 
-            return self._save(np.array(frames_list), output_path) if save else np.array(frames_list)
+            return self._save(np.array(frames_list), output_path) if is_autosave_activated else np.array(frames_list)
 
         except ValueError as e:
             logger.error(f"Error processing {input_path}: {e}")
