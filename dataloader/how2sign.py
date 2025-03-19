@@ -35,18 +35,11 @@ class How2SignDataset(Dataset):
         self.data_augmentation = data_augmentation
         self.target_processor = target_processor
         self.sentence_names = [sentence_name for sentence_name in self.csv_config[SENTENCE_NAME] if sentence_name in self.video_paths]
-        self._max_iterations = len(self.sentence_names)
-
-    def set_max_iterations(self, max_iterations: int) -> None:
-        self._max_iterations = min(len(self.sentence_names), max_iterations)
 
     def __len__(self) -> int:
-        return self._max_iterations
+        return len(self.sentence_names)
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, dict]:
-        if idx >= self._max_iterations:
-            raise StopIteration
-
         sentence_name = self.sentence_names[idx]
         video_path = self.video_paths[sentence_name]
 
