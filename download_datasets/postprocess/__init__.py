@@ -1,7 +1,7 @@
 from .delete import Delete
-from .unzip import Unzip
+from .unpack import Unpack
 
 POSTPROCESS_MAP = {
-    "Unzip": Unzip,
+    "Unpack": Unpack,
     "Delete": Delete,
 }
