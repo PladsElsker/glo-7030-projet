@@ -1,7 +1,7 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from enum import Enum
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import cv2
 import numpy as np
@@ -17,7 +17,7 @@ class AutoSaveMode(Enum):
     NO = False
 
 
-class BackgroundChangerProcessor(VideoProcessor, ABC):
+class BackgroundChangerProcessor(VideoProcessor):
     @abstractmethod
     def change_background(self, input_path: Path, output_path: Path, config: dict[str, AutoSaveMode | Path]) -> bool | np.ndarray:
         """
@@ -28,6 +28,9 @@ class BackgroundChangerProcessor(VideoProcessor, ABC):
         :param config: Dictionary with keys {"background_dir_path", "is_autosave_activated"}.
         :return: True if successful, False otherwise.
         """
+
+    def process(self, input_path: Path, output_path: Path, config: dict[str, Any]) -> bool:
+        self.change_background(input_path, output_path, config)
 
 
 class OpenCVBackgroundChanger(BackgroundChangerProcessor):

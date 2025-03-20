@@ -9,8 +9,9 @@ from preprocessing.config import PREPROCESSING_STARTING_MSG, PREPROCESSING_TYPES
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from preprocessing.resize_videos.utils import process_directory
 from preprocessing.resize_videos.video_resize_config import PROCESSING_CONFIG, SUPPORTED_EXTENSIONS
+
+from .utils import process_directory
 
 
 def setup_logger() -> None:

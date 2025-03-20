@@ -1,5 +1,5 @@
 import subprocess
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from pathlib import Path
 from typing import Any
 
@@ -8,10 +8,13 @@ from loguru import logger
 from preprocessing.video_processor import VideoProcessor
 
 
-class ResizerProcessor(VideoProcessor, ABC):
+class ResizerProcessor(VideoProcessor):
     @abstractmethod
     def resize_video(self, input_path: Path, output_path: Path, config: dict[str, Any]) -> bool:
         pass
+
+    def process(self, input_path: Path, output_path: Path, config: dict[str, Any]) -> bool:
+        self.resize_video(input_path, output_path, config)
 
 
 class FFmpegProcessor(ResizerProcessor):
