@@ -14,7 +14,7 @@ class ResizerProcessor(VideoProcessor):
         pass
 
     def process(self, input_path: Path, output_path: Path, config: dict[str, Any]) -> bool:
-        self.resize_video(input_path, output_path, config)
+        return self.resize_video(input_path, output_path, config)
 
 
 class FFmpegProcessor(ResizerProcessor):

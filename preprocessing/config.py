@@ -8,7 +8,7 @@ PATHS: Final[dict[str, str]] = {
     "data_root": "data",
     "raw_videos_dir": "raw_videos",
     "FFmpegProcessor_output_dir_template": "{size}x{size}",
-    "OpenCVBackgroundChanger_output_dir_template": "{input_dir_name}_no_green_bg",
+    "OpenCVBackgroundChanger_output_dir_template": "no_green_bg",
 }
 
 PROCESSING_CONFIG: Final[dict[str, bool | int]] = {
