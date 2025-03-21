@@ -1,6 +1,7 @@
 from typing import Final
 
 from preprocessing.bg_changer.bg_changer_processor import OpenCVBackgroundChanger
+from preprocessing.change_and_resize_processor import ChangeAndResizeProcessor
 from preprocessing.resize_videos.resizer_processor import FFmpegProcessor
 from preprocessing.video_processor import VideoProcessor
 
@@ -21,8 +22,9 @@ SUPPORTED_EXTENSIONS: Final[list[str]] = [".mp4", ".avi", ".mov", ".mkv"]
 DATASET_SPLITS: Final[list[str]] = ["train", "val", "test"]
 DATASET_VIEWS: Final[list[str]] = ["rgb_front", "rgb_side"]
 
-PREPROCESSING_TYPES: list[str] = ["resize_videos", "change_bg"]
+PREPROCESSING_TYPES: list[str] = ["resize_videos", "change_bg", "chg_n_res"]
 PREPROCESSOR_TYPES: dict[str, VideoProcessor] = {
+    "chg_n_res": ChangeAndResizeProcessor(),
     "resize_videos": FFmpegProcessor(),
     "change_bg": OpenCVBackgroundChanger(),
 }
