@@ -5,13 +5,11 @@ from pathlib import Path
 import click
 from loguru import logger
 
-from preprocessing.config import PREPROCESSING_STARTING_MSG, PREPROCESSING_TYPES, PREPROCESSOR_TYPES
+from preprocessing.config import PREPROCESSING_STARTING_MSG, PREPROCESSING_TYPES, PREPROCESSOR_TYPES, PROCESSING_CONFIG, SUPPORTED_EXTENSIONS
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from preprocessing.resize_videos.video_resize_config import PROCESSING_CONFIG, SUPPORTED_EXTENSIONS
-
-from .utils import process_directory
+from preprocessing.utils import process_directory
 
 
 def setup_logger() -> None:

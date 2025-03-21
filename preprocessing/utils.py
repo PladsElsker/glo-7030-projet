@@ -4,7 +4,7 @@ from pathlib import Path
 
 from loguru import logger
 
-from preprocessing.resize_videos.video_resize_config import DATASET_SPLITS, DATASET_VIEWS, PATHS
+from preprocessing.config import DATASET_SPLITS, DATASET_VIEWS, PATHS
 from preprocessing.video_processor import VideoProcessor
 
 
@@ -12,8 +12,8 @@ def create_output_dirs(output_path: Path) -> None:
     output_path.mkdir(parents=True, exist_ok=True)
 
 
-def get_output_dir(size: int) -> str:
-    return PATHS["output_dir_template"].format(size=size)
+def get_output_dir(size: int, preproc_typename: str) -> str:
+    return PATHS[f"{preproc_typename}_output_dir_template"].format(size=size)
 
 
 def get_clip_directories() -> list[str]:
@@ -55,7 +55,7 @@ def process_directory(
     output_path: Path | str,
 ) -> None:
     raw_videos_path = Path(clip_dir) / PATHS["raw_videos_dir"]
-    output_path = Path(output_path) / get_output_dir(config["width"])
+    output_path = Path(output_path) / get_output_dir(config["width"], type(processor).__name__)
 
     if not raw_videos_path.exists():
         logger.error(f"Directory not found: {raw_videos_path.name}")
