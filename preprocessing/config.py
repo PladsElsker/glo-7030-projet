@@ -9,6 +9,7 @@ PATHS: Final[dict[str, str]] = {
     "data_root": "data",
     "raw_videos_dir": "raw_videos",
     "FFmpegProcessor_output_dir_template": "{size}x{size}",
+    "ChangeAndResizeProcessor_output_dir_template": "{size}x{size}_no_green_bg",
     "OpenCVBackgroundChanger_output_dir_template": "no_green_bg",
 }
 
@@ -32,4 +33,5 @@ PREPROCESSOR_TYPES: dict[str, VideoProcessor] = {
 PREPROCESSING_STARTING_MSG: dict[str, str] = {
     "resize_videos": "Starting video(s) resizing process with size {size}x{size}",
     "change_bg": "Starting video(s) changing background process with size {size}",
+    "chg_n_res": "Starting video(s) changing background resizing process with size {size}x{size}",
 }

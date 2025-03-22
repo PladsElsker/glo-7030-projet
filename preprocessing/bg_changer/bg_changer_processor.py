@@ -1,7 +1,8 @@
+import random
 from abc import abstractmethod
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 import cv2
 import numpy as np
@@ -9,7 +10,7 @@ from loguru import logger
 
 from preprocessing.video_processor import VideoProcessor
 
-from .bg_changer_config import LOWER_GREEN, UPPER_GREEN
+from .config import DEFAULT_CONFIG, LOWER_GREEN, UPPER_GREEN
 
 
 class AutoSaveMode(Enum):
@@ -29,8 +30,8 @@ class BackgroundChangerProcessor(VideoProcessor):
         :return: True if successful, False otherwise.
         """
 
-    def process(self, input_path: Path, output_path: Path, config: dict[str, Any]) -> bool:
-        self.change_background(input_path, output_path, config)
+    def process(self, input_path: Path, output_path: Path, config: dict = DEFAULT_CONFIG) -> bool | np.ndarray:
+        return self.change_background(input_path, output_path, config)
 
 
 class OpenCVBackgroundChanger(BackgroundChangerProcessor):
@@ -42,25 +43,30 @@ class OpenCVBackgroundChanger(BackgroundChangerProcessor):
     def __validate__paths__(self, paths: list[Path]) -> None:
         pass
 
+    @staticmethod
+    def __select_background__(backgrounds_dir_path: Path) -> Path:
+        all_backgrounds = list(backgrounds_dir_path.glob("*.jpg"))
+        return random.choice(all_backgrounds)  # noqa:S311
+
     def change_background(self, input_path: Path, output_path: Path, config: dict[str, AutoSaveMode | Path]) -> bool | np.ndarray:
 
         if "background_dir_path" not in config or "is_autosave_activated" not in config:
             logger.error("Background directory and is_autosave_activated must be specified.")
 
         is_autosave_activated = config["is_autosave_activated"]
-        background_path = Path(config["background_dir_path"])
+        background_dir_path = Path(config["background_dir_path"])
 
         try:
             if not input_path.exists():
                 logger.error(f"Video not found: {input_path}")
                 return False
 
-            if not background_path.exists():
-                logger.error(f"Background image not found: {background_path}")
+            if not background_dir_path.exists():
+                logger.error(f"Background image not found: {background_dir_path}")
                 return False
 
             video = cv2.VideoCapture(str(input_path))
-            background = cv2.imread(str(background_path))
+            background = cv2.imread(str(self.__select_background__(background_dir_path)))
 
             if not video.isOpened():
                 logger.error(f"Cannot open video: {input_path}")
