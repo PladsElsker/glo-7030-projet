@@ -5,6 +5,7 @@ from gdown.exceptions import FileURLRetrievalError
 from loguru import logger
 
 from download_datasets.config.exceptions import ConfigError
+from download_datasets.path_helpers import without_suffix
 
 from .downloader import Downloader
 
@@ -24,7 +25,9 @@ class GoogleDriveDownloader(Downloader):
         target = directory / self.output_file
         url = GDRIVE_URL_FORMAT.format(file_id=self.file_id)
 
-        if target.exists() or target.with_suffix("").exists():
+        target_directory = without_suffix(target)
+
+        if target.exists() or target_directory.exists():
             logger.success(f'Dataset "{target}" is already downloaded.')
             return
 
