@@ -1,4 +1,5 @@
 # Sign-terpreter Project
+
 Session project for course [GLO-7030: Apprentissage par réseaux de neurones profonds](https://www.ulaval.ca/etudes/cours/glo-7030-apprentissage-par-reseaux-de-neurones-profonds)  
 This project provides a model capable of translating a sign language video into text
 
@@ -52,7 +53,9 @@ pre-commit run --all-files
 - Python 3.11+
 - ffmpeg (for video processing)
 
-### Installing ffmpeg
+## Installations
+
+### 1. ffmpeg
 
 1. **macOS** (using Homebrew):
     ```bash
@@ -70,7 +73,11 @@ pre-commit run --all-files
     - Extract the archive
     - Add the `bin` folder to your system's PATH
 
-### Available Options
+## Modules
+
+### 1. Prepocessing - resize videos
+
+#### Availables options
 
 - `-s, --size`: Target size in pixels (default: 224)
 - `-d, --data-folder`: Path or glob pattern to the input data folder(s)
@@ -78,46 +85,63 @@ pre-commit run --all-files
 - `-v, --verbose`: Show detailed logs
 - `-q, --quiet`: Show only warnings and errors
 
-### Usage
+#### Usage
 
 ```shell
-python -m preprocessing.resize_videos -d <data_folder> [-o <output_folder>] [-s <size>] [-v] [-q]
+python -m preprocessing resize_videos -d <data_folder> [-o <output_folder>] [-s <size>] [-v] [-q]
 ```
 
-### Usage Examples
+#### Usage Examples
 
 1. Resize videos in a specific directory to 224x224 (default size for ViViT and TimeSformer):
-```bash
-python -m preprocessing.resize_videos -d data/train_rgb_front_clips -s 224
-```
+    ```bash
+    python -m preprocessing.resize_videos -d data/train_rgb_front_clips -s 224
+    ```
 
 2. Resize videos to 512x512:
-```bash
-python -m preprocessing.resize_videos -d data/train_rgb_front_clips -s 512
-```
-> :information_source: This will create a `512x512` directory and force videos to be square (may distort aspect ratio)
+    ```bash
+    python -m preprocessing.resize_videos -d data/train_rgb_front_clips -s 512
+    ```
+    > :information_source: This will create a `512x512` directory and force videos to be square (may distort aspect ratio)
 
 3. Process multiple directories using glob pattern:
-```bash
-python -m preprocessing.resize_videos -d "data/*_clips" -s 224
-```
+    ```bash
+    python -m preprocessing.resize_videos -d "data/*_clips" -s 224
+    ```
 
 4. Specify a different output folder:
-```bash
-python -m preprocessing.resize_videos -d "data/*_clips" -o data/output -s 224
-```
+    ```bash
+    python -m preprocessing.resize_videos -d "data/*_clips" -o data/output -s 224
+    ```
 
 5. Quiet mode (show only warnings and errors):
-```bash
-python -m preprocessing.resize_videos -d data/train_rgb_front_clips -q
+    ```bash
+    python -m preprocessing.resize_videos -d data/train_rgb_front_clips -q
+    ```
+--------------------------------------------------------------------------------------------
+
+### Preprocessing - change background
+#### Availables options
+--------------------------------------------------------------------------------------------
+### Preprocessing - change background and resize
+Apply workflow `change background -> resize video`
+
+#### Availables options
+The same as [resize video submodule](# 1. Prepocessing - resize videos)
+
+#### Usage
+```python
+python -m processing chg_n_res -d <data_folder> [-o <output_folder>] [-s <size>] [-v] [-q]
 ```
 
 ### Directory Structure
 
 - Original videos must be placed in the `raw_videos/` subdirectory
 - Resized videos will be saved in a subdirectory named according to the size (e.g., `224x224/`, `512x512/`)
+- `change_bg` will create, if non-existent, and put the videos in `no_green_bg` folder of the data_folder
+- `chg_n_res` will create, if non-existent, and put the videos in `{size}x{size}_no_green_bg` folder of the data_folder
+- The folder containing the background's files must be a direct subfolder of data and named `backgrounds`. If not, please indicate the source of the backgrounds [here]().
 
 ### Performance Analysis
 
 The batch size can be adjusted in `preprocessing/resize_videos/video_resize_config.py` by modifying the `batch_size` parameter in `PROCESSING_CONFIG` based on your CPU and VRAM capabilities, but the current sequential implementation is recommended for reliability and simplicity.
-
