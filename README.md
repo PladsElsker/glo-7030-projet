@@ -127,7 +127,7 @@ python -m preprocessing resize_videos -d <data_folder> [-o <output_folder>] [-s 
 Apply workflow `change background -> resize video`
 
 #### Availables options
-The same as [resize video submodule](# 1. Prepocessing - resize videos)
+The same as [resize video submodule](#1-prepocessing---resize-videos)
 
 #### Usage
 ```python
