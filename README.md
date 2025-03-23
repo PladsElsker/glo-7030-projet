@@ -121,8 +121,23 @@ python -m preprocessing resize_videos -d <data_folder> [-o <output_folder>] [-s 
 --------------------------------------------------------------------------------------------
 
 ### Preprocessing - change background
+Replace the green background in another video
+
 #### Availables options
+
+- `-d, --data-folder`: Path or glob pattern to the input data folder(s)
+- `-o, --output-folder`: Path to the output folder (optional, defaults to input folder)
+- `-v, --verbose`: Show detailed logs
+- `-q, --quiet`: Show only warnings and errors
+
+#### Usage
+```python
+python -m processing change_bg -d <data_folder> [-o <output_folder>] [-v] [-q]
+```
+
+>:information_source: Once the command has been run, the program executes on all `data_folder` files. This may take some time. Please be patient
 --------------------------------------------------------------------------------------------
+
 ### Preprocessing - change background and resize
 Apply workflow `change background -> resize video`
 
@@ -144,4 +159,4 @@ python -m processing chg_n_res -d <data_folder> [-o <output_folder>] [-s <size>]
 
 ### Performance Analysis
 
-The batch size can be adjusted in `preprocessing/resize_videos/video_resize_config.py` by modifying the `batch_size` parameter in `PROCESSING_CONFIG` based on your CPU and VRAM capabilities, but the current sequential implementation is recommended for reliability and simplicity.
+The batch size can be adjusted in `preprocessing/resize_videos/video_resize_config.py` by modifying the `batch_size` parameter in [`PROCESSING_CONFIG`](preprocessing/config.py) based on your CPU and VRAM capabilities, but the current sequential implementation is recommended for reliability and simplicity.
