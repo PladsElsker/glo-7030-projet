@@ -35,7 +35,7 @@ def setup_logger() -> None:
 @click.option("-v", "--verbose", is_flag=True, help="Show detailed logs.")
 @click.option("-q", "--quiet", is_flag=True, help="Show only warnings and errors.")
 def main(preproc_type: str, data_folder: str, output_folder: str | None, size: int, verbose: bool, quiet: bool) -> None:
-    """Resize videos to specified dimensions."""
+    """Allows you to resize, change the background, or both, of videos"""
     config = {
         "width": size,
         "height": size,
