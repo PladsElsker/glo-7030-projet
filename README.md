@@ -140,7 +140,7 @@ python -m processing chg_n_res -d <data_folder> [-o <output_folder>] [-s <size>]
 - Resized videos will be saved in a subdirectory named according to the size (e.g., `224x224/`, `512x512/`)
 - `change_bg` will create, if non-existent, and put the videos in `no_green_bg` folder of the data_folder
 - `chg_n_res` will create, if non-existent, and put the videos in `{size}x{size}_no_green_bg` folder of the data_folder
-- The folder containing the background's files must be a direct subfolder of data and named `backgrounds`. If not, please indicate the source of the backgrounds [here]().
+- The folder containing the background's files must be a direct subfolder of data and named `backgrounds`. If not, please indicate the source of the backgrounds [here](preprocessing/bg_changer/config.py).
 
 ### Performance Analysis
 
