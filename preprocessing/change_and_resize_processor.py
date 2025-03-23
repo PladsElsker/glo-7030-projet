@@ -13,6 +13,7 @@ class ChangeAndResizeProcessor(VideoProcessor):
     def __init__(self) -> None:
         self.ffmpeg_processor = FFmpegProcessor()
         self.background_processor = OpenCVBackgroundChanger()
+        self.background_processor.deactivate_autosave()
 
     def process(self, input_path: Path, output_path: Path, config: dict[str, Any]) -> bool:
         video_array: np.ndarray = self.background_processor.process(input_path, output_path)

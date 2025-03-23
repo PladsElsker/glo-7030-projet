@@ -2,7 +2,7 @@ import random
 from abc import abstractmethod
 from enum import Enum
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import cv2
 import numpy as np
@@ -30,18 +30,16 @@ class BackgroundChangerProcessor(VideoProcessor):
         :return: True if successful, False otherwise.
         """
 
-    def process(self, input_path: Path, output_path: Path, config: dict = DEFAULT_CONFIG) -> bool | np.ndarray:
-        return self.change_background(input_path, output_path, config)
+    def process(self, input_path: Path, output_path: Path, *args: tuple[Any, ...]) -> bool | np.ndarray:  # noqa:ARG002
+        return self.change_background(input_path, output_path, DEFAULT_CONFIG)
 
 
 class OpenCVBackgroundChanger(BackgroundChangerProcessor):
-    def __init__(self, size: Optional[int] = None) -> None:
+    def __init__(self, size: Optional[int] = None, autosave_mode: AutoSaveMode = AutoSaveMode.YES) -> None:
         self.bg_color_range = [LOWER_GREEN, UPPER_GREEN]
         self.size = size
         self.fps = 30
-
-    def __validate__paths__(self, paths: list[Path]) -> None:
-        pass
+        self.autosave_mode = autosave_mode
 
     @staticmethod
     def __select_background__(backgrounds_dir_path: Path) -> Path:
@@ -50,10 +48,9 @@ class OpenCVBackgroundChanger(BackgroundChangerProcessor):
 
     def change_background(self, input_path: Path, output_path: Path, config: dict[str, AutoSaveMode | Path]) -> bool | np.ndarray:
 
-        if "background_dir_path" not in config or "is_autosave_activated" not in config:
-            logger.error("Background directory and is_autosave_activated must be specified.")
+        if "background_dir_path" not in config:
+            logger.error("Background directory must be specified.")
 
-        is_autosave_activated = config["is_autosave_activated"]
         background_dir_path = Path(config["background_dir_path"])
 
         try:
@@ -105,7 +102,7 @@ class OpenCVBackgroundChanger(BackgroundChangerProcessor):
             video.release()
             cv2.destroyAllWindows()
 
-            return self._save(np.array(frames_list), output_path) if is_autosave_activated else np.array(frames_list)
+            return self._save(np.array(frames_list), output_path) if self.autosave_mode.value else np.array(frames_list)
 
         except ValueError as e:
             logger.error(f"Error processing {input_path}: {e}")
@@ -137,6 +134,9 @@ class OpenCVBackgroundChanger(BackgroundChangerProcessor):
             logger.error(f"Error saving {output_path}: {e}")
             return False
         return True
+
+    def deactivate_autosave(self) -> None:
+        self.autosave_mode = AutoSaveMode.NO
 
 
 if __name__ == "__main__":

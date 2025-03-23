@@ -8,5 +8,4 @@ UPPER_GREEN = np.array([90, 255, 255])
 
 DEFAULT_CONFIG: Final[dict[str, Any]] = {
     "background_dir_path": Path(__file__).parent.parent.parent / "data" / "backgrounds",
-    "is_autosave_activated": False,
 }
