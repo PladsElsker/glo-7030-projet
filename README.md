@@ -29,14 +29,20 @@ To install project's requirements, follow steps below:
 > :information_source: All these commands are to be executed in the project root folder.
 
 ## Datasets
-To download the source datasets used for this project, run
-```shell
-python -m download_datasets [-o <output_folder>] [-c <config_file>]
-```
-> :warning: `gdown` may refuse to download some parts of the dataset automatically.   
-> You will be prompted in the console with instructions to complete the download if it cannot finish on its own.   
-> If that's the case, simply follow the instructions in the console. 
+1. To download the source datasets used for this project, run
+    ```shell
+    python -m download_datasets [-o <output_folder>] [-c <config_file>]
+    ```
+    > :warning: `gdown` may refuse to download some parts of the dataset automatically.   
+    > You will be prompted in the console with instructions to complete the download if it cannot finish on its own.   
+    > If that's the case, simply follow the instructions in the console. 
 
+2. You can download the images for backgrounds on [kaggle](https://www.kaggle.com/datasets/pavansanagapati/images-dataset?resource=download)
+    - Make sure the `archive.zip` is in the path `data\archive.zip`
+    - Run
+        ```python
+        python scripts/extract_pictures_archive.py
+        ```
 ## Development
 Setup pre-commit
 ```shell
