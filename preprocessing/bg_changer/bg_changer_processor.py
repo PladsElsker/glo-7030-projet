@@ -30,7 +30,7 @@ class BackgroundChangerProcessor(VideoProcessor):
         :return: True if successful, False otherwise.
         """
 
-    def process(self, input_path: Path, output_path: Path, *args: tuple[Any, ...]) -> bool | np.ndarray:  # noqa:ARG002
+    def process(self, input_path: Path, output_path: Path, *_: tuple[Any, ...]) -> bool | np.ndarray:
         return self.change_background(input_path, output_path, DEFAULT_CONFIG)
 
 
