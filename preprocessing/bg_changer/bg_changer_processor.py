@@ -44,7 +44,7 @@ class OpenCVBackgroundChanger(BackgroundChangerProcessor):
     @staticmethod
     def __select_background__(backgrounds_dir_path: Path) -> Path:
         all_backgrounds = list(backgrounds_dir_path.glob("*.jpg"))
-        return random.choice(all_backgrounds)  # noqa:S311
+        return random.choice(all_backgrounds)
 
     def change_background(self, input_path: Path, output_path: Path, config: dict[str, AutoSaveMode | Path]) -> bool | np.ndarray:
 
