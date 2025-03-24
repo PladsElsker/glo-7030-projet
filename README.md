@@ -79,7 +79,7 @@ pre-commit run --all-files
     - Extract the archive
     - Add the `bin` folder to your system's PATH
 
-## Modules
+## Commands
 
 ### 1. Prepocessing - resize videos
 
@@ -101,28 +101,28 @@ python -m preprocessing resize_videos -d <data_folder> [-o <output_folder>] [-s 
 
 1. Resize videos in a specific directory to 224x224 (default size for ViViT and TimeSformer):
     ```bash
-    python -m preprocessing.resize_videos -d data/train_rgb_front_clips -s 224
+    python -m preprocessing resize_videos -d data/train_rgb_front_clips -s 224
     ```
 
 2. Resize videos to 512x512:
     ```bash
-    python -m preprocessing.resize_videos -d data/train_rgb_front_clips -s 512
+    python -m preprocessing resize_videos -d data/train_rgb_front_clips -s 512
     ```
     > :information_source: This will create a `512x512` directory and force videos to be square (may distort aspect ratio)
 
 3. Process multiple directories using glob pattern:
     ```bash
-    python -m preprocessing.resize_videos -d "data/*_clips" -s 224
+    python -m preprocessing resize_videos -d "data/*_clips" -s 224
     ```
 
 4. Specify a different output folder:
     ```bash
-    python -m preprocessing.resize_videos -d "data/*_clips" -o data/output -s 224
+    python -m preprocessing resize_videos -d "data/*_clips" -o data/output -s 224
     ```
 
 5. Quiet mode (show only warnings and errors):
     ```bash
-    python -m preprocessing.resize_videos -d data/train_rgb_front_clips -q
+    python -m preprocessing resize_videos -d data/train_rgb_front_clips -q
     ```
 --------------------------------------------------------------------------------------------
 
