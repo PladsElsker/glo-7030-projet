@@ -54,10 +54,9 @@ To run pre-commit, simply commit with git, or run
 pre-commit run --all-files
 ```
 
-## Prerequisites
-
-- Python 3.11+
-- ffmpeg (for video processing)
+## Dependencies
+- Python >= 3.11
+- ffmpeg >= 7.0 (for video processing)
 
 ## Installations
 
