@@ -2,8 +2,7 @@ import json
 from pathlib import Path
 
 import click
-
-from .config import DatasetConfig
+from config import DatasetConfig
 
 
 @click.command()
