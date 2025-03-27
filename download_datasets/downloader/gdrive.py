@@ -5,9 +5,8 @@ from gdown.exceptions import FileURLRetrievalError
 from loguru import logger
 
 from download_datasets.config.exceptions import ConfigError
+from download_datasets.downloader.downloader import Downloader
 from download_datasets.path_helpers import without_suffix
-
-from .downloader import Downloader
 
 GDRIVE_ID_ATTRIBUTE = "Id"
 GDRIVE_URL_FORMAT = "https://drive.google.com/uc?id={file_id}"
