@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from download_datasets.downloader import DOWNLOADER_MAP
+from download_datasets.downloader.registry import DOWNLOADER_MAP
 
 from .attributes import DOWNLOADER_TYPE_ATTRIBUTE
 from .exceptions import ConfigError, DownloaderConfigError
