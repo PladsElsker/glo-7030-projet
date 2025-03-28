@@ -6,10 +6,21 @@ from kagglehub.exceptions import KaggleApiHTTPError
 from loguru import logger
 from tqdm import tqdm
 
+from download_datasets.config.attributes import OUTPUT_PATH_ATTRIBUTE
+from download_datasets.config.exceptions import ConfigError
+from download_datasets.downloader.common_downloader import Downloader
 
-class KaggleDownloader:
-    def __init__(self) -> None:
-        pass
+KAGGLE_DATASET_ATTRIBUTE = "Dataset"
+
+
+class KaggleHubDownloader(Downloader):
+    def __init__(self, config: dict, name: str) -> None:
+        super().__init__(config, name)
+        try:
+            self.output_path = config[OUTPUT_PATH_ATTRIBUTE]
+            self.dataset = config[KAGGLE_DATASET_ATTRIBUTE]
+        except KeyError as e:
+            raise ConfigError(KAGGLE_DATASET_ATTRIBUTE, name) from e
 
     @staticmethod
     def __move__(origin: Path, destination: Path) -> Path | None:
@@ -33,11 +44,11 @@ class KaggleDownloader:
         return destination
 
     def download(self, destination: Path) -> Path:
-        logger.info("Start downloading dataset A from Kaggle")
+        logger.info(f"Start downloading dataset {self.dataset} from Kaggle")
         dataset_downloaded_path: str | None = None
 
         try:
-            dataset_downloaded_path = kgl.dataset_download("pavansanagapati/images-dataset")
+            dataset_downloaded_path = kgl.dataset_download(self.dataset)
 
         except (OSError, KaggleApiHTTPError, NotImplementedError) as e:
             logger.error(e)
@@ -46,9 +57,3 @@ class KaggleDownloader:
             logger.success("Dataset Downloaded successfully")
 
         return self.__move__(Path(dataset_downloaded_path), destination)
-
-
-if __name__ == "__main__":
-    kgl_downloader = KaggleDownloader()
-    destination = Path(r"D:\Cours\GLO-4030\SignTerpreter\data\backgrounds\pictures")
-    kgl_downloader.download(destination)
