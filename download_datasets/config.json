@@ -3,7 +3,7 @@
         "Type": "KaggleHub",
         "Dataset": "pavansanagapati/images-dataset",
         "SaveName": "",
-        "OutputPath": "data/backgrounds/pictures",
+        "OutputPath": "backgrounds/pictures",
         "Postprocess": ["Delete"]
     },
     "Train Green Screen RGB Front Clips": {

@@ -43,12 +43,10 @@ class KaggleHubDownloader(Downloader):
 
         return destination
 
-    def download(self, destination: Path) -> Path:
+    def download(self, directory: Path) -> Path:
         logger.info(f"Start downloading dataset {self.dataset} from Kaggle")
-        dataset_downloaded_path: str | None = None
-
         try:
-            dataset_downloaded_path = kgl.dataset_download(self.dataset)
+            self.output_file = kgl.dataset_download(self.dataset)
 
         except (OSError, KaggleApiHTTPError, NotImplementedError) as e:
             logger.error(e)
@@ -56,4 +54,4 @@ class KaggleHubDownloader(Downloader):
         else:
             logger.success("Dataset Downloaded successfully")
 
-        return self.__move__(Path(dataset_downloaded_path), destination)
+        return self.__move__(Path(self.output_file), directory / self.output_path)
