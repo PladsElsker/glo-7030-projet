@@ -1,4 +1,3 @@
-import glob
 import sys
 from pathlib import Path
 
@@ -48,7 +47,7 @@ def main(preproc_type: str, data_folder: str, output_folder: str | None, size: i
 
     processor = PREPROCESSOR_TYPES[preproc_type]
 
-    data_paths = glob.glob(data_folder, recursive=True)  # noqa: PTH207
+    data_paths = list(Path(data_folder).rglob("*"))
     data_paths = [Path(p) for p in data_paths]
 
     if not data_paths:
