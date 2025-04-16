@@ -6,7 +6,6 @@ import torch
 from torch import nn
 from torchvision import transforms
 
-from core.models.transformer_backbone import MT5Backbone, TransformerModelConfig
 from uni_sign.datasets import S2T_Dataset_news
 from uni_sign.models import Uni_Sign as BaseUniSign
 
@@ -17,13 +16,7 @@ class UniSignModelParameters:
     dataset: str = "CSL_News"
     label_smoothing: float = 0.2
     rgb_support: bool = False
-    language: str = "Chinese"
     text_backbone: nn.Module = None
-
-    def __post_init__(self) -> None:
-        if self.text_backbone is None:
-            config = TransformerModelConfig(label_smoothing=self.label_smoothing)
-            self.text_backbone = MT5Backbone(config, self.language)
 
 
 def preprocess_data(pkl_path: Path, text: str, max_frames: int = 256) -> tuple:
