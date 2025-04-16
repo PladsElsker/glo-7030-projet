@@ -12,7 +12,6 @@ class BaseTransformerBackbone(nn.Module, ABC):
         super().__init__()
         self.label_smoothing = label_smoothing
         self.max_length = max_length
-        self.language = "English"
         self.pad_token = -100
         self.criterion = nn.CrossEntropyLoss(label_smoothing=label_smoothing, ignore_index=self.pad_token)
         self.model, self.tokenizer = self.load_model_and_tokenizer()
