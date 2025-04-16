@@ -7,13 +7,13 @@ from transformers import MT5ForConditionalGeneration, MT5Tokenizer
 
 
 class TransformerModelConfig:
-    def __init__(self, label_smoothing: float, max_length: int = 50):
+    def __init__(self, label_smoothing: float, max_length: int = 50) -> None:
         self.label_smoothing = label_smoothing
         self.max_length = max_length
 
 
 class BaseTransformerBackbone(nn.Module, ABC):
-    def __init__(self, config: TransformerModelConfig, language: str):
+    def __init__(self, config: TransformerModelConfig, language: str) -> None:
         super().__init__()
         self.config = config
         self.language = language
@@ -35,9 +35,7 @@ class BaseTransformerBackbone(nn.Module, ABC):
         labels[labels == self.tokenizer.pad_token_id] = -100
         return labels
 
-    def augmented_embedding(
-        self, embeddings: torch.Tensor, attention_mask: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    def augmented_embedding(self, embeddings: torch.Tensor, attention_mask: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         return embeddings, attention_mask
 
     def forward(
@@ -67,6 +65,7 @@ class BaseTransformerBackbone(nn.Module, ABC):
         flattened_labels = labels.reshape(-1)
         return loss_function(flattened_logits, flattened_labels)
 
+
 class MT5Backbone(BaseTransformerBackbone):
     def load_model_and_tokenizer(self) -> Tuple[nn.Module, nn.Module]:
         path = "uni_sign/pretrained_weight/mt5-base"
@@ -74,21 +73,11 @@ class MT5Backbone(BaseTransformerBackbone):
         tokenizer = MT5Tokenizer.from_pretrained(path)
         return model, tokenizer
 
-    def augmented_embedding(
-        self, embeddings: torch.Tensor, attention_mask: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    def augmented_embedding(self, embeddings: torch.Tensor, attention_mask: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         batch_size = embeddings.size(0)
         prompt = [f"Translate sign language video to {self.language}: "] * batch_size
-        prompt_tokens = self.tokenizer(
-            prompt, padding="longest", truncation=True, return_tensors="pt"
-        ).to(embeddings.device)
+        prompt_tokens = self.tokenizer(prompt, padding="longest", truncation=True, return_tensors="pt").to(embeddings.device)
         prompt_embeddings = self.model.encoder.embed_tokens(prompt_tokens["input_ids"])
         augmented_embeddings = torch.cat([prompt_embeddings, embeddings], dim=1)
         augmented_attention_mask = torch.cat([prompt_tokens["attention_mask"], attention_mask], dim=1)
         return augmented_embeddings, augmented_attention_mask
-
-# class OurTransformerBackbone(BaseTransformerBackbone):
-    # def load_model_and_tokenizer(self) -> Tuple[nn.Module, nn.Module]:
-        # model =
-        # tokenizer =
-        # return model, tokenizer
