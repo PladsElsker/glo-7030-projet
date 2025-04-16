@@ -3,7 +3,7 @@ from typing import Dict, Optional, Tuple
 
 import torch
 from torch import nn
-from transformers import MT5ForConditionalGeneration, MT5Tokenizer
+from transformers import MT5ForConditionalGeneration, T5Tokenizer
 
 
 class TransformerModelConfig:
@@ -70,13 +70,19 @@ class MT5Backbone(BaseTransformerBackbone):
     def load_model_and_tokenizer(self) -> Tuple[nn.Module, nn.Module]:
         path = "uni_sign/pretrained_weight/mt5-base"
         model = MT5ForConditionalGeneration.from_pretrained(path)
-        tokenizer = MT5Tokenizer.from_pretrained(path)
+        tokenizer = T5Tokenizer.from_pretrained(path)
         return model, tokenizer
 
     def augmented_embedding(self, embeddings: torch.Tensor, attention_mask: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         batch_size = embeddings.size(0)
         prompt = [f"Translate sign language video to {self.language}: "] * batch_size
-        prompt_tokens = self.tokenizer(prompt, padding="longest", truncation=True, return_tensors="pt").to(embeddings.device)
+        prompt_tokens = self.tokenizer(
+            prompt,
+            padding="longest",
+            truncation=True,
+            return_tensors="pt",
+            max_length=self.config.max_length,
+        ).to(embeddings.device)
         prompt_embeddings = self.model.encoder.embed_tokens(prompt_tokens["input_ids"])
         augmented_embeddings = torch.cat([prompt_embeddings, embeddings], dim=1)
         augmented_attention_mask = torch.cat([prompt_tokens["attention_mask"], attention_mask], dim=1)
