@@ -1,6 +1,3 @@
-[submodule "OpenASL"]
-	path = OpenASL
-	url = https://github.com/chevalierNoir/OpenASL.git
 [submodule "uni_sign"]
 	path = uni_sign
 	url = https://github.com/ZechengLi19/Uni-Sign.git

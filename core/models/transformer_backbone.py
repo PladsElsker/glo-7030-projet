@@ -8,11 +8,11 @@ from transformers import MT5ForConditionalGeneration, T5Tokenizer
 
 
 class BaseTransformerBackbone(nn.Module, ABC):
-    def __init__(self, label_smoothing: float, max_length: int, language: str) -> None:
+    def __init__(self, label_smoothing: float, max_length: int) -> None:
         super().__init__()
         self.label_smoothing = label_smoothing
         self.max_length = max_length
-        self.language = language
+        self.language = "English"
         self.pad_token = -100
         self.criterion = nn.CrossEntropyLoss(label_smoothing=label_smoothing, ignore_index=self.pad_token)
         self.model, self.tokenizer = self.load_model_and_tokenizer()
@@ -34,7 +34,7 @@ class BaseTransformerBackbone(nn.Module, ABC):
     ) -> any:
         pass
 
-    def augmented_embedding(self, embeddings: torch.Tensor, attention_mask: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def augment_embeddings(self, embeddings: torch.Tensor, attention_mask: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         return embeddings, attention_mask
 
     def forward(
@@ -43,7 +43,7 @@ class BaseTransformerBackbone(nn.Module, ABC):
         attention_mask: torch.Tensor,
         sentences: Optional[list] = None,
     ) -> Dict[str, torch.Tensor]:
-        augmented_embeddings, augmented_attention_mask = self.augmented_embedding(embeddings, attention_mask)
+        augmented_embeddings, augmented_attention_mask = self.augment_embeddings(embeddings, attention_mask)
         labels = self.tokenize_labels(sentences).to(embeddings.device) if sentences else None
         outputs = self.translate_embeddings(inputs_embeds=augmented_embeddings, attention_mask=augmented_attention_mask, labels=labels)
         loss = self.compute_loss(outputs.logits, labels) if labels is not None else None
@@ -61,7 +61,8 @@ class BaseTransformerBackbone(nn.Module, ABC):
 
 class MT5Backbone(BaseTransformerBackbone):
     def __init__(self, label_smoothing: float = 0.2, max_length: int = 50, language: str = "Chinese") -> None:
-        super().__init__(label_smoothing=label_smoothing, max_length=max_length, language=language)
+        super().__init__(label_smoothing=label_smoothing, max_length=max_length)
+        self.language = language
 
     def load_model_and_tokenizer(
         self,
@@ -96,7 +97,7 @@ class MT5Backbone(BaseTransformerBackbone):
             return_dict=True,
         )
 
-    def augmented_embedding(self, embeddings: torch.Tensor, attention_mask: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def augment_embeddings(self, embeddings: torch.Tensor, attention_mask: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         batch_size = embeddings.size(0)
         prompt = [f"Translate sign language video to {self.language}: "] * batch_size
         prompt_tokens = self.tokenizer(prompt, padding="longest", truncation=True, return_tensors="pt", max_length=self.max_length).to(
