@@ -6,6 +6,7 @@ line-length = 150
 
 [tool.ruff]
 line-length = 150
+exclude = ["github-submodule"]
 
 [tool.ruff.lint]
 select = ["A", "B", "C", "E", "F", "G", "I", "N", "Q", "S", "T", "W",
