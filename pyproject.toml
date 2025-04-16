@@ -21,8 +21,11 @@ ignore = [
     "FBT001",
     "B006",
     "ANN101",
-    "S311",
+    "S311"
 ]
 exclude = [
     ".git"
 ]
+
+[tool.ruff.lint.pylint]
+max-args = 6
