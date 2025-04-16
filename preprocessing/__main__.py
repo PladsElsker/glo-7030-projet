@@ -1,15 +1,14 @@
-import glob
 import sys
 from pathlib import Path
 
 import click
 from loguru import logger
 
+from preprocessing.config import PREPROCESSING_STARTING_MSG, PREPROCESSING_TYPES, PREPROCESSOR_TYPES, PROCESSING_CONFIG, SUPPORTED_EXTENSIONS
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from preprocessing.resize_videos.utils import process_directory
-from preprocessing.resize_videos.video_processor import FFmpegProcessor
-from preprocessing.resize_videos.video_resize_config import PROCESSING_CONFIG, SUPPORTED_EXTENSIONS
+from preprocessing.utils import process_directory
 
 
 def setup_logger() -> None:
@@ -23,6 +22,7 @@ def setup_logger() -> None:
 
 
 @click.command()
+@click.argument("preproc_type", type=click.Choice(PREPROCESSING_TYPES))
 @click.option("-d", "--data-folder", type=str, required=True, help="Path or glob pattern to the input data folder(s).")
 @click.option(
     "-o",
@@ -33,8 +33,8 @@ def setup_logger() -> None:
 @click.option("-s", "--size", default=224, help="Target size for width and height (default: 224)")
 @click.option("-v", "--verbose", is_flag=True, help="Show detailed logs.")
 @click.option("-q", "--quiet", is_flag=True, help="Show only warnings and errors.")
-def main(data_folder: str, output_folder: str | None, size: int, verbose: bool, quiet: bool) -> None:
-    """Resize videos to specified dimensions."""
+def main(preproc_type: str, data_folder: str, output_folder: str | None, size: int, verbose: bool, quiet: bool) -> None:
+    """Allows you to resize, change the background, or both, of videos"""
     config = {
         "width": size,
         "height": size,
@@ -43,11 +43,11 @@ def main(data_folder: str, output_folder: str | None, size: int, verbose: bool, 
     }
 
     setup_logger()
-    logger.info(f"Starting video resizing process with size {size}x{size}")
+    logger.info(PREPROCESSING_STARTING_MSG[preproc_type].format(size=size))
 
-    processor = FFmpegProcessor()
+    processor = PREPROCESSOR_TYPES[preproc_type]
 
-    data_paths = glob.glob(data_folder, recursive=True)  # noqa: PTH207
+    data_paths = list(Path(data_folder).rglob("*"))
     data_paths = [Path(p) for p in data_paths]
 
     if not data_paths:

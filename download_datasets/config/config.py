@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from download_datasets.downloader import DOWNLOADER_MAP
+from download_datasets.downloader.registry import DOWNLOADER_MAP
 
 from .attributes import DOWNLOADER_TYPE_ATTRIBUTE
 from .exceptions import ConfigError, DownloaderConfigError
@@ -16,7 +16,8 @@ class DatasetConfig:
                 raise ConfigError(DOWNLOADER_TYPE_ATTRIBUTE, k) from e
 
             try:
-                self.downloaders[k] = DOWNLOADER_MAP[downloader_type](v, k)
+                downloader = DOWNLOADER_MAP[downloader_type](v, k)
+                self.downloaders[k] = downloader
             except KeyError as e:
                 raise DownloaderConfigError(downloader_type, k) from e
 

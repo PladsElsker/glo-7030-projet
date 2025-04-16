@@ -1,4 +1,11 @@
 {
+    "Generic Background Images": {
+        "Type": "KaggleHub",
+        "Dataset": "pavansanagapati/images-dataset",
+        "SaveName": "",
+        "OutputPath": "backgrounds/pictures",
+        "Postprocess": ["Delete"]
+    },
     "Train Green Screen RGB Front Clips": {
         "Type": "GoogleDrive",
         "Id": "1VX7n0jjW0pW3GEdgOks3z8nqE6iI6EnW",
