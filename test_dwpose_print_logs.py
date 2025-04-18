@@ -5,7 +5,7 @@ import numpy as np
 
 def get_lines():
     for i in range(15):
-        with open(f'dwpose_logs_{i}.txt', 'r') as f:
+        with open(f'.coverage.dwpose_logs_{i}.txt', 'r') as f:
             yield f.readlines()[-1]
 
 
