@@ -68,7 +68,7 @@
     "OpenASL DWPose 54K Early": {
         "Type": "WGet",
         "URL": "https://huggingface.co/datasets/PladsElsker/openasl-dwpose/resolve/main/open-asl-dwpose-54k.zip?download=true",
-        "SaveName": "open-asl-dwpose-54k.sip",
-        "Postprocess": ["Unzip", "Delete"]
+        "SaveName": "open-asl-dwpose-54k.zip",
+        "Postprocess": ["Unpack", "Delete"]
     }
 }
