@@ -12,6 +12,18 @@
             "args": [
                 "-o", "/mnt/data/plads/how2sign"
             ]
+        },
+        {
+            "name": "GB Run test_dwpose",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "test_dwpose.py",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": [
+                "1"
+            ]
         }
     ]
 }

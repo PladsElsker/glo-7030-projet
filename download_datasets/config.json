@@ -64,5 +64,11 @@
         "Type": "GoogleDrive",
         "Id": "1AgwBZW26kFHS4CWNMQTCMPGkBPkH3qCu",
         "SaveName": "how2sign_realigned_test.csv"
+    },
+    "OpenASL DWPose 54K Early": {
+        "Type": "WGet",
+        "URL": "https://huggingface.co/datasets/PladsElsker/openasl-dwpose/resolve/main/open-asl-dwpose-54k.zip?download=true",
+        "SaveName": "open-asl-dwpose-54k.sip",
+        "Postprocess": ["Unzip", "Delete"]
     }
 }

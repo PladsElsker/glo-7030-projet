@@ -9,11 +9,18 @@ from uni_sign.datasets import S2T_Dataset_news
 from uni_sign.models import Uni_Sign as BaseUniSign
 
 
+pretrained_weights = {
+    "Stage1": "uni_sign/pretrained_weight/Uni-Sign/csl_stage1_weight.pth",
+    "Stage2": "uni_sign/pretrained_weight/Uni-Sign/csl_stage2_weight.pth",
+}
+
+
 @dataclass
 class UniSignModelParameters:
     hidden_dim: int = 256
     dataset: str = "CSL_News"
     label_smoothing: float = 0.2
+    rgb_support: bool = False
 
 
 def preprocess_data(pkl_path: Path, text: str, max_frames: int = 256) -> tuple:

@@ -8,6 +8,8 @@ import pickle
 import os
 import onnxruntime as ort
 import sys
+from pathlib import Path
+from ffmpy import FFmpeg
 
 
 log_file = open(f'dwpose_logs_{sys.argv[1]}.txt', 'w')
@@ -20,6 +22,7 @@ openasl_dataset_json_poses_path = '/mnt/data/plads/open-asl-dwpose/'
 
 
 def main():
+    # generate_video_from_sample()
     pkl_encode_open_asl()
     # validate_open_asl_dataset()
     # encode_csl_daily_vid()
@@ -43,12 +46,62 @@ def encode_csl_daily_vid():
         pickle.dump(video_poses.__dict__, f)
 
 
+def generate_video_from_sample():
+    labels = pd.read_csv(openasl_labels, sep='\t')
+    indexes = list(range(len(labels['vid'])))
+    for i in indexes[128:]:
+        label = {
+            k: v[i]
+            for k, v in labels.items()
+        }
+        output_path = openasl_dataset_json_poses_path + encode_filename(label['yid'], label['start'], label['end']) + '.pkl'
+        
+        if not os.path.exists(output_path):
+            continue
+
+        with open(output_path, 'rb') as f:
+            sample = pickle.load(f)
+
+            avi_filename = 'reconstructed.avi'
+            fourcc = cv2.VideoWriter_fourcc(*'XVID')
+            writer = cv2.VideoWriter(avi_filename, fourcc, sample['video_frames_per_second'], (sample['video_width'], sample['video_height']), isColor=True)
+
+            for frame_kp in tqdm(sample['poses']['keypoints']):
+                frame_img = np.zeros((sample['video_height'], sample['video_width'], 3), dtype=np.uint8)
+
+                for p in frame_kp[0]:
+                    p = p.astype(np.int32)
+                    cv2.circle(frame_img, p, 5, (255, 255, 255), -1)
+
+                writer.write(frame_img)
+
+            writer.release()
+        
+        mp4_filename = 'reconstructed.mp4'
+        ff = FFmpeg(
+            inputs={avi_filename: None},
+            outputs={mp4_filename: '-c:v libx264 -crf 23 -preset medium -c:a aac -b:a 128k -y'}
+        )
+        ff.run()
+        os.remove(avi_filename)
+
+        print(sample['raw_text'])
+
+        break
+
+
 def validate_open_asl_dataset():
     labels = pd.read_csv(openasl_labels, sep='\t')
     video_paths = [openasl_dataset + yid + '.mp4' for yid in labels['yid'].unique()]
     for video_path in tqdm(video_paths):
         if not os.path.exists(video_path):
             print(f'Missing {video_path}')
+    
+    paths = list(Path(openasl_dataset).rglob('*'))
+    labels = [l for l in labels['yid']]
+    for path in tqdm(paths):
+        if path.stem not in labels:
+            print(f'Extra {path.name}')
 
 
 def example_pkl_encode():
@@ -74,13 +127,28 @@ def pkl_encode_open_asl():
     num_workers = len(devices)
     labels = pd.read_csv(openasl_labels, sep='\t')
 
-    indices = list(range(len(labels['vid'])))
-    chunks = [indices[i::num_workers] for i in range(num_workers)]
-    chunk = chunks[device]
+    indexes = get_not_yet_computed_indexes(labels)
+    chunks = [indexes[i::num_workers] for i in range(num_workers)]
+    chunk = chunks[device_id]
 
     with tqdm(desc='Kepoints extract', total=len(chunk)) as pbar:
         dwpose = DWPose(device)
         pkl_encode_open_asl_thread(chunk, dwpose, labels, pbar)
+
+
+def get_not_yet_computed_indexes(labels):
+    indexes = list(range(len(labels['vid'])))
+    valid_indexes = []
+    for i in indexes:
+        label = {
+            k: v[i]
+            for k, v in labels.items()
+        }
+        output_path = openasl_dataset_json_poses_path + encode_filename(label['yid'], label['start'], label['end']) + '.pkl'
+        if not os.path.exists(output_path):
+            valid_indexes.append(i)
+    
+    return valid_indexes
 
 
 def pkl_encode_open_asl_thread(chunk, dwpose, labels, pbar=None):
@@ -90,17 +158,14 @@ def pkl_encode_open_asl_thread(chunk, dwpose, labels, pbar=None):
             for k, v in labels.items()
         }
 
-        output_path = openasl_dataset_json_poses_path + encode_filename(label['yid'], label['start'], label['end']) + '.pkl'
-        if os.path.exists(output_path):
-            pbar.update(1)
-            continue
-
         video_path = openasl_dataset + label['yid'] + '.mp4'
         video_poses = poses_from_video(dwpose, video_path, label, use_tqdm=False)
 
+        output_path = openasl_dataset_json_poses_path + video_poses.file_stem + '.pkl'
+
         with open(output_path, "wb") as f:
             pickle.dump(video_poses.__dict__, f)
-        
+
         if pbar is not None:
             pbar.update(1)
 
