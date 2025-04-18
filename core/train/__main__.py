@@ -113,19 +113,6 @@ class TrainingRunArguments:
     save_dir: Path
 
 
-@dataclass
-class TrainingOneEpochArguments:
-    model: torch.nn.Module
-    train_dataset: DataLoader
-    test_dataset: DataLoader
-    epochs: int
-    gradient_accumulation: int
-    optimizer: optim.Optimizer
-    scheduler: optim.lr_scheduler.LRScheduler
-    device: torch.device
-    save_dir: Path
-
-
 class TranslationDataset(Dataset):
     pass
 
