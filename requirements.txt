@@ -12,6 +12,7 @@ gdown==5.2.0
 huggingface-hub==0.29.2
 idna==3.10
 loguru==0.7.3
+mlflow==2.21.3
 numpy==2.2.2
 pandas==2.2.3
 pillow==11.1.0
