@@ -67,9 +67,8 @@ class MT5Backbone(BaseTransformerBackbone):
         self,
         path: Path = Path("uni_sign/pretrained_weight/mt5-base"),
     ) -> Tuple[nn.Module, nn.Module]:
-        model = MT5ForConditionalGeneration.from_pretrained(str(path))
-        tokenizer = T5Tokenizer.from_pretrained(str(path), legacy=True)
-        return model, tokenizer
+        self.model = MT5ForConditionalGeneration.from_pretrained(str(path))
+        self.tokenizer = T5Tokenizer.from_pretrained(str(path), legacy=True)
 
     def tokenize_labels(self, sentences: list) -> torch.Tensor:
         tokenized = self.tokenizer(
