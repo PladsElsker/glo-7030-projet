@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from pathlib import Path
 
 import click
@@ -61,7 +62,7 @@ def main(  # noqa: PLR0913
     train_dataset = DataLoader(train_dataset, batch_size=batch_size, num_workers=num_workers)
     test_dataset = DataLoader(test_dataset, batch_size=batch_size, num_workers=num_workers)
 
-    execute_training_run(
+    train_args = TrainingRunArguments(
         model=model,
         train_dataset=train_dataset,
         test_dataset=test_dataset,
@@ -72,46 +73,57 @@ def main(  # noqa: PLR0913
         device=torch.device(device),
         save_dir=save_checkpoint_directory,
     )
+    execute_training_run(train_args)
 
 
-def execute_training_run(  # noqa: PLR0913
-    model: torch.nn.Module,
-    train_dataset: DataLoader,
-    test_dataset: DataLoader,  # noqa: ARG001
-    epochs: int,
-    gradient_accumulation: int,
-    optimizer: optim.Optimizer,
-    scheduler: optim.lr_scheduler.LRScheduler,
-    device: torch.device,
-    save_dir: Path,  # noqa: ARG001
-) -> None:
+def execute_training_run(train_args: "TrainingRunArguments") -> None:
     mlflow.set_tracking_uri("http://127.0.0.1:5678")
     mlflow.set_experiment("SignTerpreter")
 
-    for epoch_id in range(1, epochs + 1):
+    for epoch_id in range(1, train_args.epochs + 1):
         logger.info(f"Epoch: {epoch_id}")
-        train_one_epoch(model, train_dataset, gradient_accumulation, optimizer, device)
-        scheduler.step()
+        train_one_epoch(train_args)
+        train_args.scheduler.step()
 
 
-def train_one_epoch(
-    model: torch.nn.Module,
-    train_dataset: DataLoader,
-    gradient_accumulation: int,
-    optimizer: optim.Optimizer,
-    device: torch.device,
-) -> None:
+def train_one_epoch(train_args: "TrainingRunArguments") -> None:
     gradient_accumulation_counter = 0
-    for x, y in tqdm(train_dataset):
-        x = x.to(device)
-        y = y.to(device)
+    for x, y in tqdm(train_args.train_dataset):
+        x = x.to(train_args.device)
+        y = y.to(train_args.device)
 
-        out = model(x)
+        out = train_args.model(x)
         out["loss"].backward()
         gradient_accumulation_counter += 1
-        if gradient_accumulation_counter >= gradient_accumulation:
+        if gradient_accumulation_counter >= train_args.gradient_accumulation:
             gradient_accumulation_counter = 0
-            optimizer.step()
+            train_args.optimizer.step()
+
+
+@dataclass
+class TrainingRunArguments:
+    model: torch.nn.Module
+    train_dataset: DataLoader
+    test_dataset: DataLoader
+    epochs: int
+    gradient_accumulation: int
+    optimizer: optim.Optimizer
+    scheduler: optim.lr_scheduler.LRScheduler
+    device: torch.device
+    save_dir: Path
+
+
+@dataclass
+class TrainingOneEpochArguments:
+    model: torch.nn.Module
+    train_dataset: DataLoader
+    test_dataset: DataLoader
+    epochs: int
+    gradient_accumulation: int
+    optimizer: optim.Optimizer
+    scheduler: optim.lr_scheduler.LRScheduler
+    device: torch.device
+    save_dir: Path
 
 
 class TranslationDataset(Dataset):
