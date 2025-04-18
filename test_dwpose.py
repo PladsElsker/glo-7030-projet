@@ -12,7 +12,7 @@ from pathlib import Path
 from ffmpy import FFmpeg
 
 
-log_file = open(f'dwpose_logs_{sys.argv[1]}.txt', 'w')
+log_file = open(f'.coverage.dwpose_logs_{sys.argv[1]}.txt', 'w')
 sys.stdout = log_file
 sys.stderr = log_file
 
