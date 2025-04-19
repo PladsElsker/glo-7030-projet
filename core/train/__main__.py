@@ -36,13 +36,15 @@ def main(  # noqa: PLR0913
     learning_rate: float,
     device: str,
 ) -> None:
-    if save_checkpoint_directory is not None:
-        save_checkpoint_directory = Path(save_checkpoint_directory)
+    save_checkpoint_directory = Path(save_checkpoint_directory)
 
     translation_transformer = None
+
     if transformer_type == "mt5":
         translation_transformer = MT5Backbone(language="English")
         translation_transformer.load_model_and_tokenizer()
+        for parameter in translation_transformer.parameters():
+            parameter.requires_grad = False
     elif transformer_type == "t5":
         pass
 
@@ -80,24 +82,73 @@ def execute_training_run(train_args: "TrainingRunArguments") -> None:
     mlflow.set_tracking_uri("http://127.0.0.1:5678")
     mlflow.set_experiment("SignTerpreter")
 
+    train_args.model.to(train_args.device)
+
     for epoch_id in range(1, train_args.epochs + 1):
         logger.info(f"Epoch: {epoch_id}")
-        train_one_epoch(train_args)
+
+        train_loss = train_one_epoch(train_args)
+        val_loss = validate_one_epoch(train_args)
+
         train_args.scheduler.step()
 
+        mlflow.log_metric("train_loss", train_loss, step=epoch_id)
+        mlflow.log_metric("val_loss", val_loss, step=epoch_id)
 
-def train_one_epoch(train_args: "TrainingRunArguments") -> None:
+        checkpoint_path = train_args.save_dir / f"checkpoint_epoch_{epoch_id}.pt"
+        torch.save(train_args.model.state_dict(), checkpoint_path)
+        logger.info(f"Saved checkpoint to {checkpoint_path}")
+
+
+def train_one_epoch(train_args: "TrainingRunArguments") -> float:
+    train_args.model.train()
+
     gradient_accumulation_counter = 0
-    for x, y in tqdm(train_args.train_dataset):
+    running_loss = 0.0
+    steps = 0
+
+    for x, y in tqdm(train_args.train_dataset, desc="Training"):
         x = x.to(train_args.device)
         y = y.to(train_args.device)
 
         out = train_args.model(x)
-        out["loss"].backward()
+        loss = out["loss"]
+
+        loss.backward()
         gradient_accumulation_counter += 1
+        running_loss += loss.item()
+        steps += 1
+
         if gradient_accumulation_counter >= train_args.gradient_accumulation:
             gradient_accumulation_counter = 0
             train_args.optimizer.step()
+            train_args.optimizer.zero_grad()
+
+    avg_loss = running_loss / steps
+    logger.info(f"Train Loss: {avg_loss:.4f}")
+    return avg_loss
+
+
+def validate_one_epoch(train_args: "TrainingRunArguments") -> float:
+    train_args.model.eval()
+
+    running_loss = 0.0
+    steps = 0
+
+    with torch.no_grad():
+        for x, y in tqdm(train_args.test_dataset, desc="Validation"):
+            x = x.to(train_args.device)
+            y = y.to(train_args.device)
+
+            out = train_args.model(x)
+            loss = out["loss"]
+
+            running_loss += loss.item()
+            steps += 1
+
+    avg_loss = running_loss / steps
+    logger.info(f"Validation Loss: {avg_loss:.4f}")
+    return avg_loss
 
 
 @dataclass
@@ -113,8 +164,23 @@ class TrainingRunArguments:
     save_dir: Path
 
 
+# class TranslationDataset(Dataset):
+#     pass
+
+
+# creation des fausses données pour tester à vider si tout va bien avc le script
+# errors lors de l'execution /uni_Sign/config: module introuvable
 class TranslationDataset(Dataset):
-    pass
+    def __init__(self, *, dataset_path: str | Path, train: bool = True, test: bool = False) -> None:  # noqa: ARG002
+        self.length = 100
+
+    def __len__(self) -> int:
+        return self.length
+
+    def __getitem__(self, idx: int) -> tuple:
+        x = torch.randn(1, 512)
+        y = torch.randint(0, 2, (1,))
+        return x, y
 
 
 if __name__ == "__main__":
