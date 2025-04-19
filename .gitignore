@@ -1,3 +1,5 @@
+.idea/
+
 # Other files from tex compiler
 *.aux
 *.fls
