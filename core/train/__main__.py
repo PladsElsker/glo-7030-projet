@@ -36,13 +36,15 @@ def main(  # noqa: PLR0913
     learning_rate: float,
     device: str,
 ) -> None:
-    if save_checkpoint_directory is not None:
-        save_checkpoint_directory = Path(save_checkpoint_directory)
+    save_checkpoint_directory = Path(save_checkpoint_directory)
 
     translation_transformer = None
     if transformer_type == "mt5":
         translation_transformer = MT5Backbone(language="English")
         translation_transformer.load_model_and_tokenizer()
+        for param in translation_transformer.parameters():
+            param.requires_grad = False
+
     elif transformer_type == "t5":
         pass
 
@@ -94,10 +96,12 @@ def train_one_epoch(train_args: "TrainingRunArguments") -> None:
 
         out = train_args.model(x)
         out["loss"].backward()
+
         gradient_accumulation_counter += 1
         if gradient_accumulation_counter >= train_args.gradient_accumulation:
             gradient_accumulation_counter = 0
             train_args.optimizer.step()
+            train_args.optimizer.zero_grad()
 
 
 @dataclass
