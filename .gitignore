@@ -1,3 +1,5 @@
+.idea/
+
 # Other files from tex compiler
 *.aux
 *.fls
@@ -182,3 +184,9 @@ cython_debug/
 .pypirc
 
 data/
+
+# mlflow
+mlruns/
+
+# ruff
+.ruff_cache/

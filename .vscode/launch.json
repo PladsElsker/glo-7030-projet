@@ -12,6 +12,18 @@
             "args": [
                 "-o", "/mnt/data/plads/how2sign"
             ]
+        },
+        {
+            "name": "Train SignTerpreter",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "core.train",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": [
+                "--dataset", "/mnt/data/plads/open-asl-dwpose", "--save-checkpoint-directory", "./trained_models", "--batch-size", "1"
+            ]
         }
     ]
 }

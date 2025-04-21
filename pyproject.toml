@@ -22,7 +22,8 @@ ignore = [
     "B006",
     "ANN101",
     "S311",
-    "PLW2901"
+    "PLW2901",
+    "S301"
 ]
 exclude = [
     ".git"

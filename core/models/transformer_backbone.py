@@ -14,7 +14,7 @@ class BaseTransformerBackbone(nn.Module, ABC):
         self.max_length = max_length
         self.pad_token = -100
         self.criterion = nn.CrossEntropyLoss(label_smoothing=label_smoothing, ignore_index=self.pad_token)
-        self.model, self.tokenizer = self.load_model_and_tokenizer()
+        self.load_model_and_tokenizer()
 
     @abstractmethod
     def load_model_and_tokenizer(self, path: Optional[Path] = None) -> Tuple[nn.Module, nn.Module]:

@@ -37,7 +37,7 @@ def preprocess_data(pkl_path: Path, text: str, max_frames: int = 256) -> tuple:
     s.rgb_support = False
 
     pose, rgb = preproc(s, pkl_filename, rgb_filename)
-    return postproc(s, [[pkl_path.stem, pose, text, -1, rgb]])
+    return (*postproc(s, [[pkl_path.stem, pose, text, -1, rgb]]),)
 
 
 class UniSign(BaseUniSign):
