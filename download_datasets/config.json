@@ -79,7 +79,7 @@
             "Unpack", "Delete",
             {
                 "Type": "CombineFolders",
-                "Sources": ["open-asl-dwpose-1", "open-asl-dwpose-1"],
+                "Sources": ["open-asl-dwpose-1", "open-asl-dwpose-2"],
                 "Target": "open-asl-dwpose"
             }
         ]
