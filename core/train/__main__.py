@@ -15,8 +15,7 @@ from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
 from core.models.transformer_backbone import MT5Backbone
-from core.models.uni_sign import UniSign, UniSignModelParameters
-from core.models.uni_sign import preprocess_data as preprocess_pkl_samples
+from core.models.uni_sign import UniSign, UniSignModelParameters, collate_fn, preprocess_data as preprocess_pkl_samples
 
 sys.path[0:0] = ["uni_sign"]
 
@@ -72,8 +71,8 @@ def train(  # noqa: PLR0913
     train_dataset = TranslationDataset(dataset, split=DatasetSplit.TRAIN)
     test_dataset = TranslationDataset(dataset, split=DatasetSplit.TEST)
 
-    train_dataset = DataLoader(train_dataset, batch_size=batch_size, num_workers=num_workers, collate_fn=collate_function)
-    test_dataset = DataLoader(test_dataset, batch_size=batch_size, num_workers=num_workers, collate_fn=collate_function)
+    train_dataset = DataLoader(train_dataset, batch_size=batch_size, num_workers=num_workers, collate_fn=collate_fn)
+    test_dataset = DataLoader(test_dataset, batch_size=batch_size, num_workers=num_workers, collate_fn=collate_fn)
 
     train_args = TrainingRunArguments(
         model=model,

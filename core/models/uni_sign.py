@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from types import SimpleNamespace
 
+import numpy as np
 import torch
 from torch import nn
 from torchvision import transforms
@@ -37,7 +38,29 @@ def preprocess_data(pkl_path: Path, text: str, max_frames: int = 256) -> tuple:
     s.rgb_support = False
 
     pose, rgb = preproc(s, pkl_filename, rgb_filename)
-    return (*postproc(s, [[pkl_path.stem, pose, text, -1, rgb]]),)
+    return *postproc(s, [[pkl_path.stem, pose, text, -1, rgb]]),
+
+
+def collate_fn(batches: list) -> tuple:
+    src_input = dict()
+    tgt_input = dict()
+
+    keys = batches[0][0].keys()
+    for key in keys:
+        max_length = max(len(batch[0][key]) for batch in batches[0])
+        src_input[key] = [
+            pad_with_last(batch, max_length)
+            for batch in batches
+        ]
+
+    return src_input, tgt_input
+
+
+def pad_with_last(data: np.array, length: int) -> np.array:
+    if len(data) >= length:
+        return data
+    padding = np.broadcast_to(data[-1], (length - len(data), *data.shape[1:]))
+    return np.concatenate((data, padding), axis=0)
 
 
 class UniSign(BaseUniSign):
