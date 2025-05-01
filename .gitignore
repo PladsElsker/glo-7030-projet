@@ -190,3 +190,5 @@ mlruns/
 
 # ruff
 .ruff_cache/
+
+trained_models/

@@ -1,12 +1,13 @@
 import contextlib
+import json
 import pickle
-import sys
 import tempfile
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 
 import click
+import matplotlib.pyplot as plt
 import mlflow
 import torch
 from loguru import logger
@@ -15,9 +16,8 @@ from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
 from core.models.transformer_backbone import MT5Backbone
-from core.models.uni_sign import UniSign, UniSignModelParameters, collate_fn, preprocess_data as preprocess_pkl_samples
-
-sys.path[0:0] = ["uni_sign"]
+from core.models.uni_sign import UniSign, UniSignModelParameters, collate_fn
+from core.models.uni_sign import preprocess_data as preprocess_pkl_samples
 
 
 @click.command()
@@ -29,8 +29,9 @@ sys.path[0:0] = ["uni_sign"]
 @click.option("--batch-size", "-b", type=int, default=8, help="Batch size")
 @click.option("--gradient-accumulation", "-g", type=int, default=1, help="Gradient accumulation")
 @click.option("--num-workers", "-w", type=int, default=1, help="Amount of workers to use for dataset loading")
-@click.option("--learning-rate", "-lr", type=float, default=3e-4, help="Learning rate")
+@click.option("--learning-rate", "-lr", type=float, default=1e-4, help="Learning rate")
 @click.option("--device", "-dev", type=str, default="cuda", help="Torch device used for training")
+@click.option("--mlflow", "-m", is_flag=True, default=False, help="Use mlflow instead of matplotlib for training analytics")
 def train(  # noqa: PLR0913
     dataset: str,
     save_checkpoint_directory: str,
@@ -42,6 +43,7 @@ def train(  # noqa: PLR0913
     num_workers: int,
     learning_rate: float,
     device: str,
+    mlflow: bool,
 ) -> None:
     dataset = Path(dataset)
     save_checkpoint_directory = Path(save_checkpoint_directory)
@@ -84,46 +86,62 @@ def train(  # noqa: PLR0913
         scheduler=scheduler,
         device=torch.device(device),
         save_dir=save_checkpoint_directory,
+        use_mlflow=mlflow,
     )
     execute_training_run(train_args)
 
 
 def execute_training_run(train_args: "TrainingRunArguments") -> None:
     logger.info("Start experiment")
-    mlflow.set_tracking_uri("http://127.0.0.1:5678")
-    mlflow.set_experiment("SignTerpreter")
+    if train_args.use_mlflow:
+        mlflow.set_tracking_uri("http://127.0.0.1:5678")
+        mlflow.set_experiment("SignTerpreter")
 
-    with mlflow.start_run():
-        for python_file in Path().glob("*.py"):
-            mlflow.log_artifact(python_file, artifact_path="source_code")
+    training_parameters = (
+        {
+            "epochs": train_args.epochs,
+            "gradient_accumulation": train_args.gradient_accumulation,
+            "optimizer": train_args.optimizer.__class__.__name__,
+            "scheduler": train_args.scheduler.__class__.__name__,
+            "device": str(train_args.device),
+            "save_dir": str(train_args.save_dir),
+        },
+    )
+    if train_args.use_mlflow:
+        mlflow.start_run().__enter__()
+        mlflow.log_params(training_parameters)
+    else:
+        with Path.open("trained_models/last_train_parameters.json", "w") as f:
+            f.write(json.dumps(training_parameters))
 
-        mlflow.log_params(
-            {
-                "epochs": train_args.epochs,
-                "gradient_accumulation": train_args.gradient_accumulation,
-                "optimizer": train_args.optimizer.__class__.__name__,
-                "scheduler": train_args.scheduler.__class__.__name__,
-                "device": str(train_args.device),
-                "save_dir": str(train_args.save_dir),
-            },
-        )
+    train_args.model.to(train_args.device)
 
-        train_args.model.to(train_args.device)
+    train_losses_per_epoch = []
+    validation_losses_per_epoch = []
 
-        for epoch_id in range(1, train_args.epochs + 1):
-            logger.info(f"Epoch: {epoch_id}")
+    for epoch_id in range(1, train_args.epochs + 1):
+        logger.info(f"Epoch: {epoch_id}")
 
-            train_loss = train_one_epoch(train_args, epoch_id)
-            val_loss = validate_one_epoch(train_args, epoch_id)
+        train_loss = train_one_epoch(train_args, epoch_id)
+        val_loss = validate_one_epoch(train_args, epoch_id)
 
-            train_args.scheduler.step()
+        train_losses_per_epoch.append(train_loss)
+        validation_losses_per_epoch.append(val_loss)
 
+        train_args.scheduler.step()
+
+        if train_args.use_mlflow:
             mlflow.log_metric("train_epoch_loss", train_loss, step=epoch_id)
             mlflow.log_metric("validation_epoch_loss", val_loss, step=epoch_id)
+        else:
+            plot_loss_per_epoch_plt(epoch_id, train_losses_per_epoch, validation_losses_per_epoch)
 
-            checkpoint_path = train_args.save_dir / f"checkpoint_epoch_{epoch_id}.pt"
-            torch.save(train_args.model.state_dict(), checkpoint_path)
-            logger.info(f"Saved checkpoint to {checkpoint_path}")
+        checkpoint_path = train_args.save_dir / f"checkpoint_epoch_{epoch_id}.pt"
+        torch.save(train_args.model.state_dict(), checkpoint_path)
+        logger.info(f"Saved checkpoint to {checkpoint_path}")
+
+    if train_args.use_mlflow:
+        mlflow.start_run().__exit__(None, None, None)
 
 
 def train_one_epoch(train_args: "TrainingRunArguments", epoch_id: int) -> float:
@@ -133,25 +151,29 @@ def train_one_epoch(train_args: "TrainingRunArguments", epoch_id: int) -> float:
     running_losses = []
 
     with tqdm(desc="Training", total=len(train_args.train_dataset)) as p_bar:
-        for step_id, (x, y) in enumerate(train_args.train_dataset, desc="Training"):
+        for step_id, (x, y) in enumerate(train_args.train_dataset):
             for k, v in x.items():
                 try:
                     x[k] = v.to(train_args.device).to(torch.float32)
                 except AttributeError as e:
                     contextlib.suppress(e)
 
+            gradient_accumulation_counter += 1
+
+            if gradient_accumulation_counter >= train_args.gradient_accumulation:
+                train_args.optimizer.zero_grad()
+
             loss = train_args.model(x, y)["loss"]
             loss.backward()
-            gradient_accumulation_counter += 1
             running_losses.append(loss.item())
 
-            global_step_id = step_id + len(train_args.train_dataset) * (epoch_id - 1)
-            mlflow.log_metric("train_running_loss", loss.item(), step=global_step_id)
+            if train_args.use_mlflow:
+                global_step_id = step_id + len(train_args.train_dataset) * (epoch_id - 1)
+                mlflow.log_metric("train_running_loss", loss.item(), step=global_step_id)
 
             if gradient_accumulation_counter >= train_args.gradient_accumulation:
                 gradient_accumulation_counter = 0
                 train_args.optimizer.step()
-                train_args.optimizer.zero_grad()
 
             p_bar.update(1)
             p_bar.set_description(f"Training | Loss: {sum(running_losses) / len(running_losses)}")
@@ -177,12 +199,30 @@ def validate_one_epoch(train_args: "TrainingRunArguments", epoch_id: int) -> flo
             loss = train_args.model(x, y)["loss"]
             running_losses.append(loss.item())
 
-            global_step_id = step_id + len(train_args.test_dataset) * (epoch_id - 1)
-            mlflow.log_metric("validation_running_loss", loss.item(), step=global_step_id)
+            if train_args.use_mlflow:
+                global_step_id = step_id + len(train_args.test_dataset) * (epoch_id - 1)
+                mlflow.log_metric("validation_running_loss", loss.item(), step=global_step_id)
 
     avg_loss = sum(running_losses) / len(running_losses)
     logger.info(f"Validation Loss: {avg_loss:.4f}")
     return avg_loss
+
+
+def plot_loss_per_epoch_plt(current_epoch: int, training_losses_per_epoch: list, validation_losses_per_epoch: list) -> None:
+    _, axes = plt.subplots(1, 1, figsize=(12, 8))
+
+    epochs_iterator = range(1, current_epoch + 1)
+    axes.plot(epochs_iterator, training_losses_per_epoch, label="Train Loss", marker="o")
+    axes.plot(epochs_iterator, validation_losses_per_epoch, label="Validation Loss", marker="o")
+
+    axes.set_title("Loss per Epoch")
+    axes.set_xlabel("Epoch")
+    axes.set_ylabel("Loss")
+    axes.legend()
+    axes.grid()
+
+    plt.tight_layout()
+    plt.savefig("trained_models/loss_curves.png")
 
 
 @dataclass
@@ -196,12 +236,24 @@ class TrainingRunArguments:
     scheduler: optim.lr_scheduler.LRScheduler
     device: torch.device
     save_dir: Path
+    use_mlflow: bool
 
 
 class TranslationDataset(Dataset):
     def __init__(self, dataset_path: Path, split: "DatasetSplit") -> None:
         self.samples = list(dataset_path.glob("*.pkl"))[:10]
-        self.split = split
+
+        start_test_index = int(len(self.samples) * 0.8)
+        start_validation_index = int(len(self.samples) * 0.9)
+
+        if split == DatasetSplit.TRAIN:
+            self.samples = self.samples[:start_test_index]
+        elif split == DatasetSplit.TEST:
+            self.samples = self.samples[start_test_index:start_validation_index]
+        elif split == DatasetSplit.VALIDATION:
+            self.samples = self.samples[start_validation_index:]
+
+        logger.info(f"Loaded {len(self.samples)} samples for {split.name} dataset")
 
     def __len__(self) -> int:
         return len(self.samples)
@@ -214,12 +266,15 @@ class TranslationDataset(Dataset):
             pickle.dump(sample["poses"], f)
             temp_path = Path(f.name)
 
-        return (
+        res = (
             *preprocess_pkl_samples(
                 temp_path,
                 sample["raw_text"],
             ),
         )
+
+        temp_path.unlink(missing_ok=True)
+        return res
 
 
 def collate_function(samples: list) -> tuple:
