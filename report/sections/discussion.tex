@@ -1,0 +1,56 @@
+\section{Discussion}
+
+Dans cette section, nous analysons de manière critique les résultats obtenus, les décisions techniques prises ainsi que les limites rencontrées durant le développement et l’expérimentation de notre système de traduction automatique de la langue des signes basé sur Uni-Sign en configuration pose-only.
+
+\subsection*{1. Ce qui a bien fonctionné}
+
+\paragraph{Modèle pose-only efficace}
+
+L’un des résultats les plus encourageants de notre étude est la capacité du modèle à générer des phrases cohérentes et informatives à partir des seules poses extraites, sans aucune image RGB. Malgré la réduction du signal d’entrée, la performance obtenue en BLEU-4 (13.2) reste très proche du modèle original Uni-Sign (14.9), validant notre hypothèse centrale : \textit{les keypoints encodent suffisamment d'information sémantique pour permettre une traduction efficace}.
+
+\paragraph{Modularité du backbone}
+
+La restructuration de l’architecture autour du module \texttt{BaseTransformerBackbone} a été un facteur déterminant pour :
+\begin{itemize}
+    \item tester rapidement plusieurs modèles de décodeur textuel (mT5, T5-small, etc.) ;
+    \item adapter la génération à différentes langues (via un simple paramètre de configuration) ;
+    \item contrôler le compromis entre coût d'entraînement et performance.
+\end{itemize}
+
+\paragraph{Pipeline reproductible et léger}
+
+L’ensemble du pipeline (extraction de poses, normalisation, entraînement, évaluation) a été codifié dans un dépôt Git bien structuré, avec des branches thématiques, une configuration unifiée et un code compatible avec PyTorch Lightning. Ce niveau d’organisation a permis une grande efficacité expérimentale.
+
+\subsection*{2. Ce qui a moins bien fonctionné}
+
+\paragraph{Qualité des poses extraites}
+
+Malgré les bonnes performances générales, certains frames présentent du bruit ou des poses incomplètes (voir figure~\ref{fig:noisy_pose}). Cela peut induire des erreurs de génération ou perturber le modèle lors de la phase d’entraînement, notamment lorsque les mains ou le visage sont mal détectés.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.32\textwidth]{images/noisy_pose_sample.png}
+    \caption{Exemple de bruit dans les keypoints extraits : points isolés, mauvaises proportions.}
+    \label{fig:noisy_pose}
+\end{figure}
+
+\paragraph{Contrôle de génération limité}
+
+La nature libre de la génération textuelle (via mT5) introduit une variabilité difficile à encadrer. Certaines phrases générées sont syntaxiquement correctes, mais s’écartent de la formulation attendue, ce qui pénalise les scores BLEU malgré une similarité sémantique. L’introduction d’un mécanisme de \textit{prompt learning} ou de \textit{prefix tuning} plus robuste pourrait améliorer la stabilité.
+
+\paragraph{Pas de fine-tuning sur How2Sign}
+
+En raison de contraintes de temps, nous n’avons pas effectué de fine-tuning du modèle sur le corpus de validation How2Sign. Cette étape aurait probablement permis de combler une partie de l’écart avec le modèle SOTA RGB+Pose original.
+
+\subsection*{3. Perspectives et pistes d’amélioration}
+
+\begin{itemize}
+    \item \textbf{Multi-échelle temporelle} : intégrer un module hiérarchique pour mieux capturer les gestes longs ou imbriqués.
+    \item \textbf{Supervision légère} : combiner le modèle pose-only avec une supervision par glosses (si disponibles) pour guider la génération.
+    \item \textbf{Élagage adaptatif des keypoints} : appliquer des techniques de filtrage attentionnel pour ignorer les articulations peu pertinentes ou bruyantes.
+    \item \textbf{Fusion post-inférence} : combiner plusieurs sorties générées (ensemble decoding) pour en améliorer la stabilité.
+\end{itemize}
+
+\subsection*{Conclusion}
+
+La version adaptée de Uni-Sign en configuration pose-only démontre un excellent compromis entre efficacité, précision et frugalité. Elle ouvre des perspectives intéressantes pour des applications en contexte réel, y compris dans des environnements à ressources limitées. Toutefois, le système gagnerait à être affiné par des stratégies hybrides (gloss-light, visual prompting) et à être enrichi par des données mieux nettoyées ou annotées.

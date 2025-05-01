@@ -1,0 +1,42 @@
+\section*{Travaux connexes et état de l'art}
+
+Les travaux en traduction automatique de la langue des signes (Sign Language Translation, SLT) se sont historiquement appuyés sur des architectures séquentielles de type CNN-RNN avec supervision par glosses. Ces glosses jouent un rôle intermédiaire en représentant les signes manuels sous forme textuelle, facilitant la tâche de traduction finale. Toutefois, ces méthodes souffrent de deux limitations majeures : (1) la nécessité de disposer d’annotations coûteuses en glosses, difficilement accessibles à grande échelle ; (2) la difficulté à capturer la richesse multimodale du langage des signes, qui repose non seulement sur les mains, mais aussi sur les expressions faciales et les mouvements du corps.
+
+\subsection*{Des approches classiques aux paradigmes modernes}
+
+Les premières approches de SLT, telles que SLRT ou STMC-T, reposaient sur un pipeline à deux étapes : reconnaissance des glosses (CSLR) via CTC Loss, puis traduction gloss $\rightarrow$ texte. Cette approche a montré ses limites, notamment en termes de scalabilité et de performances sur des langues des signes complexes comme l’ASL. Face à cela, les recherches récentes migrent vers des architectures \textit{gloss-free}, basées sur le paradigme transformer et l’apprentissage auto-supervisé, qui permettent d'apprendre directement une représentation du langage des signes sans étape intermédiaire de gloss.
+
+\subsection*{L’émergence des Transformers et des paradigmes unifiés}
+
+L’introduction des Transformers a marqué un tournant en SLT. Les modèles récents tels que GFSLT-VLP, Sign2GPT ou SignLLM s’appuient sur des stratégies de pré-entraînement vidéo-texte ou des LLMs pour modéliser directement la relation entre gestes et phrases. Ces modèles exploitent la puissance des encodeurs visuels et des décodeurs de texte préentraînés pour améliorer la traduction en aval.
+
+Dans cette lignée, l’architecture \textbf{Uni-Sign}~\cite{li2025unisign} introduit une contribution majeure : un paradigme de pré-entraînement unifié basé sur le langage, accompagné d’un fine-tuning unique pour toutes les tâches SLU (ISLR, CSLR, SLT). Ce modèle se distingue par :
+\begin{itemize}
+    \item l’intégration de données à très grande échelle (CSL-News avec 1\,985h de vidéos),
+    \item une stratégie de fusion multi-modale guidée par les poses (Prior-Guided Fusion),
+    \item une unification conceptuelle des tâches SLU comme sous-cas d’un problème de traduction,
+    \item une capacité à fonctionner en mode \textit{pose-only}, avec une efficacité computationnelle remarquable.
+\end{itemize}
+
+\subsection*{Comparaison avec les approches concurrentes}
+
+Le benchmark How2Sign a récemment été dominé par les modèles SOTA suivants :
+\begin{itemize}
+    \item \textbf{SSVP-SLT}~\cite{rust2024ssvp}: une méthode en deux étapes (auto-encodage vidéo puis fine-tuning supervisé) avec anonymisation par floutage facial. SSVP-SLT atteint un BLEU-4 de 15.5, mais nécessite des ressources importantes et l’accès à de larges corpus pré-anonymisés.
+    \item \textbf{Uni-Sign}~\cite{li2025unisign}: deuxième meilleur score avec un BLEU-4 de 14.9 sur How2Sign, en utilisant un paradigme d’apprentissage génératif et un transfert direct vers les tâches SLT.
+    \item \textbf{SpaMo}~\cite{spamo2024}: modèle fondé sur les dynamiques de mouvement et la configuration spatiale, atteignant 10.1 BLEU-4, mais avec une généralisation plus faible.
+\end{itemize}
+
+Ces résultats indiquent une consolidation du paradigme transformer dans le domaine, souvent combiné à des approches de type \textit{pose-based}, multimodales, ou auto-supervisées.
+
+\subsection*{Justification de notre choix : Uni-Sign comme base}
+
+Dans le cadre de notre projet, nous avons retenu l’architecture Uni-Sign pour plusieurs raisons :
+\begin{itemize}
+    \item Elle s’aligne naturellement avec notre intuition initiale de modéliser la SLT comme un problème de génération conditionnée, sans supervision intermédiaire par gloss.
+    \item Elle permet de fonctionner en mode \textit{pose-only}, ce qui est crucial pour nous car nous avons décidé de ne pas exploiter les vidéos RGB, afin de réduire les besoins en calcul et respecter certaines contraintes éthiques (visage non requis).
+    \item Sa structure modulaire permet un transfert learning efficace depuis un dataset de taille modérée comme OpenASL, tout en gardant des performances intéressantes.
+    \item Enfin, cette approche nous a permis d’économiser du temps et des ressources, en capitalisant sur une architecture bien pensée plutôt que de repartir de zéro.
+\end{itemize}
+
+Notre objectif est donc de démontrer que l’on peut reproduire (voire approcher) les performances SOTA sur How2Sign à partir d’un entraînement effectué uniquement sur OpenASL avec des poses extraites par DWPOSE, sans RGB, dans une configuration frugale, reproductible et plus éthique.

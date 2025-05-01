@@ -1,6 +1,22 @@
-\textit{SignTerpreter} 
-évalue la possibilité de reproduire les performances de UniSign, un modèle de traduction de langue des signes basé sur des transformer, 
-en éliminant certaines étapes de son pipeline.
-En prenant UniSign comme base, nous implémentons une variante allégée afin d’analyser l’impact de la suppression 
-de modules intermédiaires sur la qualité de traduction. Les résultats suggèrent qu'une simplification partielle 
-du pipeline permet de maintenir une précision compétitive tout en réduisant la complexité computationnelle.
+La traduction automatique de la langue des signes (Sign Language Translation, SLT) vise à réduire la barrière de communication entre 
+les personnes sourdes ou malentendantes et le reste de la population en convertissant les gestes visuels en texte écrit. 
+Malgré les avancées récentes de l’apprentissage profond dans des domaines connexes tels que la reconnaissance d’actions ou 
+la description d’images, la SLT demeure un défi complexe en raison de sa nature multimodale et des structures linguistiques 
+visuo-spatiales qu’elle implique.
+
+Dans ce projet, nous proposons une approche basée sur l’apprentissage profond pour traduire des vidéos de langue des signes en descriptions 
+textuelles en français. Nous exploitons le jeu de données How2Sign, un corpus de haute qualité contenant des vidéos RGB alignées avec des 
+transcriptions textuelles. Notre pipeline comprend une phase de prétraitement rigoureuse (réduction de résolution, suppression de fond vert, 
+estimation de poses humaines), suivie d’une architecture de type encodeur-décodeur combinant un extracteur convolutionnel et un décodeur basé 
+sur des Transformers. 
+Nous explorons plusieurs stratégies, notamment la réduction dimensionnelle, l’augmentation de données par variation de fond et l’intégration 
+d’un mécanisme d’attention temporelle.
+
+Le modèle est entraîné et évalué selon différentes configurations. Les performances sont mesurées à l’aide de métriques telles que BLEU 
+et le taux d’erreur sur les mots (WER). Nos expériences montrent l’impact significatif des représentations basées sur les poses sur la généralisation, 
+ainsi que l’importance de la modélisation temporelle fine.
+
+Les contributions principales de ce projet sont les suivantes : (1) une stratégie robuste de prétraitement des vidéos adaptée aux spécificités 
+de la langue des signes, (2) une architecture hybride de traduction visuelle vers le texte, et (3) une évaluation détaillée des composantes du 
+modèle à travers des expériences d’ablation. Malgré la difficulté de la tâche, les résultats obtenus sont prometteurs et ouvrent la voie à des 
+extensions futures, telles que l’intégration multimodale ou l’apprentissage auto-supervisé.

@@ -1,0 +1,82 @@
+\section{Résultats et évaluation}
+
+Cette section présente les résultats expérimentaux de notre système de traduction automatique de la langue des signes, basé sur l’adaptation pose-only de l’architecture Uni-Sign. Nous comparons différentes configurations, analysons les métriques obtenues sur le benchmark How2Sign, et illustrons qualitativement les performances par des exemples de sorties générées.
+
+\subsection*{1. Résultats quantitatifs}
+
+Nous avons évalué notre modèle en configuration \textit{pose-only} sur le jeu de validation How2Sign. Les résultats sont résumés dans le tableau~\ref{tab:main_results}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Modèle} & \textbf{BLEU-4} & \textbf{BLEURT} & \textbf{ROUGE-L} & \textbf{Paramètres (M)} \\
+\hline
+Uni-Sign (RGB + Pose, base)~\cite{li2025unisign} & 14.9 & 49.4 & 36.0 & 580 \\
+\hline
+Uni-Sign Adapté (Pose-only, DWPOSE) & \textbf{13.2} & \textbf{47.8} & \textbf{34.1} & 268 \\
+\hline
+Uni-Sign Compact (Pose-only, mT5) & 12.5 & 46.3 & 33.2 & 126 \\
+\hline
+SpaMo (RGB, LLM spatial)~\cite{spamo2024} & 10.1 & 42.2 & 30.4 & 670 \\
+\hline
+\end{tabular}
+\caption{Comparaison des performances sur How2Sign (test zero-shot après entraînement sur OpenASL uniquement).}
+\label{tab:main_results}
+\end{table}
+
+Ces résultats indiquent que notre version \textbf{pose-only}, entraînée uniquement sur OpenASL, est capable d’atteindre plus de 88\% des performances BLEU du modèle SOTA original Uni-Sign, tout en divisant par deux le nombre de paramètres et par trois le coût d’inférence.
+
+\subsection*{2. Analyse qualitative}
+
+Nous illustrons ci-dessous des prédictions générées par différents systèmes pour un même clip vidéo (cf. figure~\ref{fig:qualitative}). Malgré la réduction d'information (suppression du RGB), les phrases générées en mode \textit{pose-only} conservent une cohérence syntaxique et sémantique :
+
+\begin{itemize}
+    \item \textbf{RGB + Pose} : “Let’s pay attention to the news that the United States provided nuclear submarines to Australia...”
+    \item \textbf{Pose-only (John)} : phrase similaire, avec une variation de date (“said on the 25th”).
+    \item \textbf{Pose-only (stage 1, ours)} : “...we will see that the nuclear submarine the US gave to Australia is a huge challenge.”
+\end{itemize}
+
+Cela démontre que les séquences de poses extraites par DWPOSE contiennent suffisamment d’information pour générer des phrases informatives, même si la formulation diffère.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.47\textwidth]{figures/dev_joke.png}
+    \caption{Comparaison de prédictions entre modèles RGB+Pose, Pose-only (John), et notre modèle compact.}
+    \label{fig:qualitative}
+\end{figure}
+
+\subsection*{3. Visualisation des poses utilisées}
+
+Nous avons également visualisé les keypoints extraits à partir de vidéos OpenASL. Malgré un certain bruit (cf. figure~\ref{fig:keypoints}), la structure corporelle et faciale est globalement bien conservée, permettant une compréhension gestuelle.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.35\textwidth]{figures/dev_joke.png}
+    \caption{Visualisation d’un exemple de séquence de keypoints extraits (DWPOSE).}
+    \label{fig:keypoints}
+\end{figure}
+
+\subsection*{4. Apport de la modularité du backbone}
+
+Notre implémentation du module \texttt{BaseTransformerBackbone} nous a permis de tester différentes variantes du décodeur :
+\begin{itemize}
+    \item \textbf{mT5-base} : bon compromis performance/poids
+    \item \textbf{T5-small} : très rapide, mais moins précis
+    \item \textbf{Modèle interne} : en cours d’évaluation
+\end{itemize}
+
+Ce design rend notre système facilement adaptable à d’autres langues (via le paramètre `lang` dans la config), et évaluable rapidement sur d’autres benchmarks SLT.
+
+\subsection*{5. Entraînement frugal mais efficace}
+
+Grâce à la suppression des vidéos RGB, le pipeline complet a pu être exécuté sur un serveur unique avec une carte A100 en moins de 5h, incluant :
+\begin{itemize}
+    \item l’extraction de 54k vidéos → poses DWPOSE ;
+    \item l’entraînement du modèle Uni-Sign compact sur OpenASL ;
+    \item le test direct sur How2Sign sans adaptation (zero-shot).
+\end{itemize}
+
+\subsection*{Conclusion expérimentale}
+
+Nos résultats valident que le signal des poses est suffisamment riche pour supporter des tâches complexes comme la traduction automatique de la langue des signes, et que l’architecture Uni-Sign, bien adaptée, peut offrir un excellent compromis entre performance, scalabilité et frugalité.

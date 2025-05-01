@@ -1,0 +1,79 @@
+\section{Méthodologie et expérimentation}
+
+Cette section décrit le protocole expérimental que nous avons suivi, depuis la préparation des données jusqu’à l’entraînement et l’évaluation du modèle. L’objectif est d’étudier l’efficacité d’un système de traduction SLT basé uniquement sur des séquences de poses, en adaptant l’architecture Uni-Sign et en réduisant la dépendance aux ressources computationnelles intensives.
+
+\subsection*{1. Prétraitement des données}
+
+\paragraph{Extraction des poses avec DWPOSE}
+
+Chaque vidéo du corpus OpenASL est d’abord redimensionnée à 224x224 pixels, puis traitée avec le détecteur de poses DWPOSE, un modèle open-source capable d’extraire jusqu’à 137 points clés couvrant les mains, le visage et le corps. Les poses sont enregistrées sous forme de matrices temporelles de dimension $T \times K \times 2$, où $T$ est le nombre d’images (frames), $K$ le nombre de keypoints, et les coordonnées $(x, y)$ normalisées dans $[0,1]$.
+
+\paragraph{Nettoyage et normalisation}
+
+- Suppression des frames sans détection ou avec plus de 30\% de points manquants.
+- Interpolation linéaire des keypoints manquants.
+- Centrage et mise à l’échelle des coordonnées par rapport à un repère barycentrique (poitrine/torse).
+- Standardisation frame-wise des poses : moyenne nulle et variance unité par échantillon.
+
+\paragraph{Segmentation temporelle}
+
+Les vidéos sont divisées en clips de 64 à 128 frames selon la longueur moyenne observée. Chaque clip est ensuite tronqué ou complété par padding pour garantir une entrée de dimension fixe dans le modèle.
+
+\subsection*{2. Structuration des données}
+
+\paragraph{Splitting}
+
+- Entraînement : 80\% des segments de OpenASL (environ 26 000 exemples)
+- Validation : 10\% pour ajustement des hyperparamètres
+- Test final : Benchmark sur How2Sign (non vu durant l’entraînement)
+
+\paragraph{Augmentation de données}
+
+- Masquage aléatoire de sous-séquences de poses (DropToken)
+- Perturbation spatiale aléatoire (jittering) dans les limites de 5\%
+- Random temporal sampling dans les longues séquences
+
+\subsection*{3. Détails d’entraînement}
+
+\paragraph{Modèle}
+
+Nous avons testé deux variantes du modèle :
+\begin{itemize}
+    \item \textbf{Uni-Sign Base (pose-only)} : encodeur de poses + décodeur mT5-base
+    \item \textbf{Uni-Sign Compact} : encodeur allégé + décodeur à 4 couches avec 8 têtes d’attention
+\end{itemize}
+
+\paragraph{Optimisation}
+
+\begin{itemize}
+    \item Optimiseur : AdamW
+    \item Learning rate : $5 \times 10^{-4}$ (avec warmup linéaire sur 2 epochs, décroissance cosinus)
+    \item Batch size : 32 (accumulation de gradient sur 4 pour simuler 128)
+    \item Nombre d’époques : 30 (avec early stopping sur BLEU-4)
+    \item Loss : Cross-Entropy avec Label Smoothing (0.1)
+    \item Dropout : 0.3
+\end{itemize}
+
+\paragraph{Infrastructure}
+
+- Entraînement effectué sur une carte GPU NVIDIA A100 40GB
+- Framework utilisé : PyTorch Lightning v2.1
+- Environ 4 heures d’entraînement pour le modèle compact
+
+\subsection*{4. Évaluation}
+
+Les performances sont mesurées sur How2Sign avec les métriques suivantes :
+\begin{itemize}
+    \item \textbf{BLEU-1/4} : mesure de la fidélité n-gramme entre la traduction et la référence
+    \item \textbf{ROUGE-L} : mesure de la plus longue sous-séquence commune
+    \item \textbf{BLEURT} : métrique basée sur un modèle pré-entraîné évaluant la qualité sémantique
+\end{itemize}
+
+\subsection*{5. Objectif expérimental}
+
+Notre but est de valider les hypothèses suivantes :
+\begin{itemize}
+    \item Il est possible d’atteindre des scores compétitifs avec une configuration uniquement basée sur les poses.
+    \item L’adaptation frugale d’Uni-Sign (pose-only + mT5) peut rivaliser avec les versions RGB+Pose, à moindres coûts.
+    \item Une architecture modulaire permet de tester efficacement différents modèles textuels (T5, mT5, transformer légers).
+\end{itemize}

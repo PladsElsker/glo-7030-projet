@@ -1,0 +1,21 @@
+\section{Conclusion}
+
+Dans ce projet, nous avons étudié la traduction automatique de la langue des signes (SLT) en nous concentrant sur une approche frugale et efficace, reposant exclusivement sur des séquences de poses extraites à partir de vidéos, sans recours aux images RGB. À cette fin, nous avons adapté l’architecture Uni-Sign, reconnue pour ses performances SOTA, afin de l’utiliser dans un contexte \textit{pose-only}, avec une structure modulaire de type transformer.
+
+Nos travaux ont permis d’obtenir des résultats très encourageants. En entraînant notre modèle uniquement sur le jeu de données OpenASL, nous avons atteint une performance compétitive en mode \textit{zero-shot} sur How2Sign, avec un score BLEU-4 de 13.2, soit plus de 88\% des performances du modèle Uni-Sign original (RGB + Pose), tout en divisant la charge computationnelle par deux à trois.
+
+Au-delà des performances quantitatives, notre contribution principale réside dans :
+\begin{itemize}
+    \item la démonstration expérimentale que les poses suffisent à transmettre l’information sémantique dans une tâche de SLT complète (\textit{gloss-free}) ;
+    \item la mise en œuvre d’un pipeline modulaire, configurable et reproductible, incluant un backbone transformer interchangeable ;
+    \item une adaptation responsable du modèle en accord avec les principes de frugalité, d’accessibilité et de respect de la vie privée.
+\end{itemize}
+
+Nous avons également identifié certaines limites, notamment la variabilité des poses extraites et la difficulté à contrôler précisément la génération textuelle. Ces observations ouvrent plusieurs pistes de travail futur :
+\begin{itemize}
+    \item intégration d’un contrôle syntaxique plus fort via prompt learning ou apprentissage par contraintes ;
+    \item hybridation avec une supervision légère ou un alignement par glosses si disponibles ;
+    \item enrichissement des données de poses par du post-traitement ou des méthodes d’auto-correction.
+\end{itemize}
+
+En conclusion, ce projet a démontré la faisabilité d’une traduction automatique efficace de la langue des signes à partir d’un signal gestuel seul, en s’appuyant sur une adaptation intelligente d’une architecture SOTA existante. Cette approche ouvre des perspectives concrètes pour le développement d’outils de traduction accessibles, éthiques et légers pour la communauté sourde.

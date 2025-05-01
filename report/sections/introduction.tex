@@ -1,0 +1,29 @@
+\section*{Introduction}
+
+La langue des signes constitue le principal moyen de communication pour les personnes sourdes et malentendantes. 
+Sa traduction automatique vers le texte est une problématique à fort impact social et technologique, permettant de faciliter 
+l’inclusion numérique et la communication intercommunautaire. Toutefois, la nature visuo-spatiale complexe des signes, combinée à leur forte 
+variabilité entre locuteurs, rend la tâche de traduction particulièrement difficile pour les approches d’apprentissage automatique.
+
+Le domaine de la Sign Language Translation (SLT) a connu une évolution significative grâce à l’émergence de modèles basés sur les réseaux de neurones 
+profonds. Toutefois, de nombreuses méthodes existantes souffrent d’un découplage entre les phases de pré-entraînement et d’ajustement 
+sur les tâches aval, ce qui limite leur efficacité. L’architecture \textbf{Uni-Sign}, récemment introduite, propose un paradigme unifié 
+de pré-entraînement génératif à grande échelle et de fine-tuning, permettant de résoudre ce décalage. 
+Elle a démontré des performances SOTA remarquables sur divers benchmarks, en exploitant des données riches (poses + vidéos RGB) et 
+une fusion multimodale guidée.
+
+Dans ce projet, nous nous appuyons sur l’architecture Uni-Sign pour proposer une solution plus légère et accessible à 
+la tâche de traduction automatique de vidéos en langue des signes américaine (ASL) vers du texte en anglais. 
+Notre objectif est double : (1) valider la capacité de l’architecture Uni-Sign à produire des résultats compétitifs en n’utilisant que 
+des séquences de poses (issues de DWPOSE), sans images RGB, et (2) réduire significativement la complexité computationnelle, 
+la consommation mémoire et le coût d’inférence, sans compromettre la qualité de traduction.
+
+Nous adoptons une approche \textit{gloss-free}, ce qui nous permet de contourner la nécessité de disposer d’annotations intermédiaires de glosses, 
+souvent coûteuses à obtenir. Le modèle est pré-entraîné par transfert sur le dataset OpenASL, qui offre un bon compromis entre taille, 
+diversité linguistique et disponibilité. Contrairement à la version originale d’Uni-Sign, 
+notre approche repose exclusivement sur les poses extraites avec DWPOSE, un estimateur de poses performant et plus léger que 
+RTMPose utilisé initialement.
+
+En résumé, ce projet vise à démontrer que des performances de haut niveau en traduction automatique de la langue des signes 
+peuvent être atteintes en se concentrant uniquement sur l’information gestuelle, dans une optique de frugalité computationnelle 
+et de reproductibilité accessible, ouvrant ainsi la voie à des déploiements dans des contextes à ressources limitées.

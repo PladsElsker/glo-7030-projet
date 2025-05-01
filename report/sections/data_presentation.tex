@@ -1,0 +1,33 @@
+\section{Présentation des données et de la tâche}
+
+La traduction automatique de la langue des signes (SLT) repose sur la disponibilité de jeux de données contenant des vidéos de signes alignées avec des transcriptions textuelles. Dans notre projet, nous considérons deux corpus majeurs en langue des signes américaine (ASL) : \textbf{OpenASL} et \textbf{How2Sign}. Chacun présente des caractéristiques spécifiques en termes de taille, de diversité, de modalités, et de conditions d'enregistrement.
+
+\subsection*{OpenASL : un jeu de données massif et diversifié}
+
+OpenASL~\cite{shi2022openasl} est un corpus de 288 heures de vidéos extraites du web, comprenant plus de 33\,000 segments annotés avec des phrases en anglais. Il se distingue par :
+\begin{itemize}
+    \item une grande diversité de locuteurs (signers), de styles et d’environnements (fond naturel),
+    \item un format aligné vidéo-texte sans gloss intermédiaires,
+    \item la possibilité d’extraction de séquences de poses (corps et mains) à partir des vidéos RGB originales.
+\end{itemize}
+
+Ce jeu de données est particulièrement adapté au pré-entraînement d’un modèle de traduction, car il offre une couverture linguistique étendue et une richesse gestuelle permettant un apprentissage robuste des patrons visuo-sémantiques. De plus, il est compatible avec une approche \textit{gloss-free}, ce qui élimine la nécessité d’annotations intermédiaires coûteuses.
+
+\subsection*{How2Sign : un benchmark standardisé pour la validation}
+
+How2Sign~\cite{duarte2021how2sign} est un jeu de données plus restreint (79 heures), mais dont les conditions de captation sont contrôlées (fond vert, studio, qualité homogène). Il contient des vidéos synchronisées avec des phrases en anglais, ce qui en fait une référence couramment utilisée pour évaluer les performances des modèles SLT.
+
+Ce corpus constitue notre \textbf{jeu de validation}, permettant de tester la capacité de généralisation du modèle entraîné sur OpenASL dans un environnement maîtrisé et standardisé. Il permet également la comparaison avec les résultats SOTA publiés dans la littérature récente (GFSLT, Uni-Sign, SSVP-SLT...).
+
+\subsection*{Choix stratégique : entraînement sur OpenASL, validation sur How2Sign}
+
+Notre décision de nous appuyer sur \textbf{OpenASL pour l’entraînement} repose sur plusieurs considérations :
+\begin{itemize}
+    \item \textbf{Taille du corpus} : OpenASL est plus de 3 fois plus volumineux que How2Sign, ce qui augmente significativement le potentiel d’apprentissage profond.
+    \item \textbf{Diversité naturelle} : Les vidéos issues de contextes variés favorisent la robustesse du modèle.
+    \item \textbf{Frugalité computationnelle} : En extrayant uniquement les poses via DWPOSE (sans RGB), nous réduisons la complexité sans compromettre la richesse informationnelle.
+\end{itemize}
+
+Dans un second temps, nous avons utilisé \textbf{How2Sign comme benchmark de validation}, afin de tester l’adaptabilité du modèle à un domaine différent, mais très représentatif du standard SLT actuel.
+
+Cette stratégie croisée (entraînement $\rightarrow$ OpenASL, test $\rightarrow$ How2Sign) vise à valider notre hypothèse centrale : \textit{il est possible d’obtenir des résultats compétitifs en traduction SLT uniquement à partir des poses, sans supervision intermédiaire, et en s'appuyant sur des données web-accessibles}.

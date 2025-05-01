@@ -1,0 +1,6 @@
+{
+    "latex-workshop.formatting.latexindent.path": "latexindent",
+    "editor.formatOnSave": true,
+    "editor.wordWrap": "on"
+  }
+  
