@@ -1,3 +1,5 @@
+import unisign_syspath  # noqa: F401, I001
+
 import contextlib
 import json
 import pickle
