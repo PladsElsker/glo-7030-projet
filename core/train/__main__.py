@@ -1,4 +1,4 @@
-import unisign_syspath  # noqa: F401, I001
+import core.train.unisign_syspath  # noqa: F401, I001
 
 import contextlib
 import json
@@ -243,7 +243,8 @@ class TrainingRunArguments:
 
 class TranslationDataset(Dataset):
     def __init__(self, dataset_path: Path, split: "DatasetSplit") -> None:
-        self.samples = list(dataset_path.glob("*.pkl"))[:10]
+        self.samples = list(dataset_path.glob("*.pkl"))
+        self.idx_offset = 0
 
         start_test_index = int(len(self.samples) * 0.8)
         start_validation_index = int(len(self.samples) * 0.9)
@@ -258,24 +259,27 @@ class TranslationDataset(Dataset):
         logger.info(f"Loaded {len(self.samples)} samples for {split.name} dataset")
 
     def __len__(self) -> int:
-        return len(self.samples)
+        return len(self.samples) - self.idx_offset
 
     def __getitem__(self, idx: int) -> tuple:
-        with Path.open(self.samples[idx], "rb") as pkl_file:
+        with Path.open(self.samples[idx + self.idx_offset], "rb") as pkl_file:
             sample = pickle.load(pkl_file)
 
         with tempfile.NamedTemporaryFile(mode="wb", delete=False, suffix=".pkl") as f:
             pickle.dump(sample["poses"], f)
             temp_path = Path(f.name)
+        try:
+            res = (
+                *preprocess_pkl_samples(
+                    temp_path,
+                    sample["raw_text"],
+                ),
+            )
+            temp_path.unlink(missing_ok=True)
+        except ValueError:
+            self.idx_offset += 1
+            res = self.__getitem__(idx)
 
-        res = (
-            *preprocess_pkl_samples(
-                temp_path,
-                sample["raw_text"],
-            ),
-        )
-
-        temp_path.unlink(missing_ok=True)
         return res
 
 
