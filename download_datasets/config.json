@@ -65,10 +65,23 @@
         "SaveName": "test_2D_keypoints.tar.gz",
         "Postprocess": ["Unpack", "Delete"]
     },
-    "OpenASL DWPose 54K Early": {
+    "OpenASL DWPose 94K Part 1": {
         "Type": "WGet",
-        "URL": "https://huggingface.co/datasets/PladsElsker/openasl-dwpose/resolve/main/open-asl-dwpose-54k.zip?download=true",
-        "SaveName": "open-asl-dwpose-54k.zip",
+        "URL": "https://huggingface.co/datasets/PladsElsker/openasl-dwpose/resolve/main/open-asl-dwpose-1.tar?download=true",
+        "SaveName": "open-asl-dwpose-1.tar",
         "Postprocess": ["Unpack", "Delete"]
+    },
+    "OpenASL DWPose 94K Part 2": {
+        "Type": "WGet",
+        "URL": "https://huggingface.co/datasets/PladsElsker/openasl-dwpose/resolve/main/open-asl-dwpose-2.tar?download=true",
+        "SaveName": "open-asl-dwpose-2.tar",
+        "Postprocess": [
+            "Unpack", "Delete",
+            {
+                "Type": "CombineFolders",
+                "Sources": ["open-asl-dwpose-1", "open-asl-dwpose-2"],
+                "Target": "open-asl-dwpose"
+            }
+        ]
     }
 }
