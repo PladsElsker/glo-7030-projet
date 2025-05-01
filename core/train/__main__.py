@@ -262,6 +262,9 @@ class TranslationDataset(Dataset):
         return len(self.samples) - self.idx_offset
 
     def __getitem__(self, idx: int) -> tuple:
+        if idx >= len(self):
+            raise StopIteration
+
         with Path.open(self.samples[idx + self.idx_offset], "rb") as pkl_file:
             sample = pickle.load(pkl_file)
 
