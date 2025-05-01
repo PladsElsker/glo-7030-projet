@@ -5,6 +5,7 @@ import tempfile
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
+import sacrebleu
 
 import click
 import mlflow
@@ -65,7 +66,7 @@ def train(  # noqa: PLR0913
         pretrained_encoder = Path(pretrained_encoder)
         model.load_state_dict(torch.load(pretrained_encoder, weights_only=True), strict=False)
 
-    optimizer = optim.AdamW(params=model.parameters(), lr=learning_rate)
+    optimizer = optim.AdamW(params=model.parameters(), lr=learning_rate, weight_decay=0.01, eps=1e-8, betas=(0.9, 0.999))
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs // gradient_accumulation)
 
     train_dataset = TranslationDataset(dataset, split=DatasetSplit.TRAIN)
@@ -90,99 +91,165 @@ def train(  # noqa: PLR0913
 
 def execute_training_run(train_args: "TrainingRunArguments") -> None:
     logger.info("Start experiment")
-    mlflow.set_tracking_uri("http://127.0.0.1:5678")
-    mlflow.set_experiment("SignTerpreter")
+    
+    use_mlflow = False
+    try:
+        mlflow.set_tracking_uri("http://127.0.0.1:5678")
+        mlflow.set_experiment("SignTerpreter")
+        use_mlflow = True
+        logger.info("MLflow tracking enabled")
+    except Exception as e:
+        logger.warning(f"MLflow tracking disabled: {e}")
+        logger.warning("Continuing training without MLflow tracking")
+    
+    if use_mlflow:
+        with mlflow.start_run():
+            for python_file in Path().glob("*.py"):
+                mlflow.log_artifact(python_file, artifact_path="source_code")
 
-    with mlflow.start_run():
-        for python_file in Path().glob("*.py"):
-            mlflow.log_artifact(python_file, artifact_path="source_code")
+            mlflow.log_params(
+                {
+                    "epochs": train_args.epochs,
+                    "gradient_accumulation": train_args.gradient_accumulation,
+                    "optimizer": train_args.optimizer.__class__.__name__,
+                    "scheduler": train_args.scheduler.__class__.__name__,
+                    "device": str(train_args.device),
+                    "save_dir": str(train_args.save_dir),
+                },
+            )
+            
+            _run_training(train_args, use_mlflow)
+    else:
+        _run_training(train_args, use_mlflow)
 
-        mlflow.log_params(
-            {
-                "epochs": train_args.epochs,
-                "gradient_accumulation": train_args.gradient_accumulation,
-                "optimizer": train_args.optimizer.__class__.__name__,
-                "scheduler": train_args.scheduler.__class__.__name__,
-                "device": str(train_args.device),
-                "save_dir": str(train_args.save_dir),
-            },
-        )
+def _run_training(train_args: "TrainingRunArguments", use_mlflow: bool) -> None:
+    train_args.model.to(train_args.device)
 
-        train_args.model.to(train_args.device)
+    for epoch_id in range(1, train_args.epochs + 1):
+        logger.info(f"Epoch: {epoch_id}")
 
-        for epoch_id in range(1, train_args.epochs + 1):
-            logger.info(f"Epoch: {epoch_id}")
+        train_loss = train_one_epoch(train_args, epoch_id, use_mlflow)
+        val_loss, bleu_scores = validate_one_epoch(train_args, epoch_id, use_mlflow)
 
-            train_loss = train_one_epoch(train_args, epoch_id)
-            val_loss = validate_one_epoch(train_args, epoch_id)
+        train_args.scheduler.step()
 
-            train_args.scheduler.step()
-
+        if use_mlflow:
             mlflow.log_metric("train_epoch_loss", train_loss, step=epoch_id)
             mlflow.log_metric("validation_epoch_loss", val_loss, step=epoch_id)
+            
+            for metric_name, score in bleu_scores.items():
+                mlflow.log_metric(metric_name, score, step=epoch_id)
 
-            checkpoint_path = train_args.save_dir / f"checkpoint_epoch_{epoch_id}.pt"
-            torch.save(train_args.model.state_dict(), checkpoint_path)
-            logger.info(f"Saved checkpoint to {checkpoint_path}")
+        checkpoint_path = train_args.save_dir / f"checkpoint_epoch_{epoch_id}.pt"
+        torch.save(train_args.model.state_dict(), checkpoint_path)
+        logger.info(f"Saved checkpoint to {checkpoint_path}")
 
 
-def train_one_epoch(train_args: "TrainingRunArguments", epoch_id: int) -> float:
+def train_one_epoch(train_args: "TrainingRunArguments", epoch_id: int, use_mlflow: bool = True) -> float:
     train_args.model.train()
 
     gradient_accumulation_counter = 0
     running_losses = []
 
+    train_args.optimizer.zero_grad()
+
     with tqdm(desc="Training", total=len(train_args.train_dataset)) as p_bar:
-        for step_id, (x, y) in enumerate(train_args.train_dataset, desc="Training"):
+        for step_id, (x, y) in enumerate(train_args.train_dataset):
+            if gradient_accumulation_counter == 0:
+                train_args.optimizer.zero_grad()
+            
             for k, v in x.items():
                 try:
                     x[k] = v.to(train_args.device).to(torch.float32)
                 except AttributeError as e:
                     contextlib.suppress(e)
-
-            loss = train_args.model(x, y)["loss"]
+            loss = train_args.model(x, y)["loss"] 
             loss.backward()
+            
+            # torch.nn.utils.clip_grad_norm_(train_args.model.parameters(), max_norm=1.0)
+            
             gradient_accumulation_counter += 1
             running_losses.append(loss.item())
 
-            global_step_id = step_id + len(train_args.train_dataset) * (epoch_id - 1)
-            mlflow.log_metric("train_running_loss", loss.item(), step=global_step_id)
+            if use_mlflow:
+                global_step_id = step_id + len(train_args.train_dataset) * (epoch_id - 1)
+                mlflow.log_metric("train_running_loss", loss.item(), step=global_step_id)
 
             if gradient_accumulation_counter >= train_args.gradient_accumulation:
-                gradient_accumulation_counter = 0
                 train_args.optimizer.step()
                 train_args.optimizer.zero_grad()
+                gradient_accumulation_counter = 0
 
             p_bar.update(1)
-            p_bar.set_description(f"Training | Loss: {sum(running_losses) / len(running_losses)}")
+            p_bar.set_description(f"Training | Loss: {sum(running_losses[-100:]) / min(len(running_losses), 100):.8f}")
 
-    avg_loss = sum(running_losses) / len(running_losses)
+    if gradient_accumulation_counter > 0:
+        train_args.optimizer.step()
+        train_args.optimizer.zero_grad()
+
+    avg_loss = sum(running_losses) / len(running_losses) if running_losses else float('inf')
     logger.info(f"Train Loss: {avg_loss:.4f}")
     return avg_loss
 
 
-def validate_one_epoch(train_args: "TrainingRunArguments", epoch_id: int) -> float:
+def validate_one_epoch(train_args: "TrainingRunArguments", epoch_id: int, use_mlflow: bool = True) -> tuple[float, dict]:
     train_args.model.eval()
 
     running_losses = []
+    all_predictions = []
+    all_references = []
 
     with torch.no_grad():
         for step_id, (x, y) in enumerate(tqdm(train_args.test_dataset, desc="Validation")):
             for k, v in x.items():
                 try:
                     x[k] = v.to(train_args.device).to(torch.float32)
-                except AttributeError as e:
-                    contextlib.suppress(e)
+                except AttributeError:
+                    continue
 
-            loss = train_args.model(x, y)["loss"]
+            outputs = train_args.model(x, y)
+            loss = outputs["loss"]
+            
+            predictions = outputs.get("predictions", [])
+            
+            if not predictions and "gt_sentence" in y:
+                all_references.extend(y["gt_sentence"])
+                all_predictions.extend([""] * len(y["gt_sentence"]))
+            
             running_losses.append(loss.item())
+            
+            if predictions:
+                all_predictions.extend(predictions)
+            
+            if use_mlflow:
+                global_step_id = step_id + len(train_args.test_dataset) * (epoch_id - 1)
+                mlflow.log_metric("validation_running_loss", loss.item(), step=global_step_id)
 
-            global_step_id = step_id + len(train_args.test_dataset) * (epoch_id - 1)
-            mlflow.log_metric("validation_running_loss", loss.item(), step=global_step_id)
+    avg_loss = sum(running_losses) / len(running_losses) if running_losses else 0.0
+    
+    bleu_scores = {}
+    if all_predictions and all_references:
+        try:
+            bleu_scores['bleu'] = sacrebleu.corpus_bleu(all_predictions, [all_references]).score
+            bleu_scores['bleu-2'] = sacrebleu.corpus_bleu(all_predictions, [all_references], max_ngram_order=2).score
+            bleu_scores['bleu-3'] = sacrebleu.corpus_bleu(all_predictions, [all_references], max_ngram_order=3).score
+            bleu_scores['bleu-4'] = sacrebleu.corpus_bleu(all_predictions, [all_references], max_ngram_order=4).score
+            
+            logger.info(f"Validation Loss: {avg_loss:.4f}")
+            logger.info(f"BLEU Score: {bleu_scores['bleu']:.2f}")
+            logger.info(f"BLEU-2 Score: {bleu_scores['bleu-2']:.2f}")
+            logger.info(f"BLEU-3 Score: {bleu_scores['bleu-3']:.2f}")
+            logger.info(f"BLEU-4 Score: {bleu_scores['bleu-4']:.2f}")
+            
+            if use_mlflow:
+                for metric_name, score in bleu_scores.items():
+                    mlflow.log_metric(metric_name, score, step=epoch_id)
+        except Exception:
+            logger.warning("Erreur lors du calcul des scores BLEU")
+    else:
+        logger.warning("Pas de prédictions ou références disponibles pour calculer le score BLEU")
 
-    avg_loss = sum(running_losses) / len(running_losses)
-    logger.info(f"Validation Loss: {avg_loss:.4f}")
-    return avg_loss
+    return avg_loss, bleu_scores
 
 
 @dataclass
@@ -200,8 +267,17 @@ class TrainingRunArguments:
 
 class TranslationDataset(Dataset):
     def __init__(self, dataset_path: Path, split: "DatasetSplit") -> None:
-        self.samples = list(dataset_path.glob("*.pkl"))[:10]
+        all_samples = list(dataset_path.glob("*.pkl"))
+        
+        if split == DatasetSplit.TRAIN:
+            self.samples = all_samples[:int(len(all_samples) * 0.8)]
+        elif split == DatasetSplit.TEST:
+            self.samples = all_samples[int(len(all_samples) * 0.8):int(len(all_samples) * 0.9)]
+        elif split == DatasetSplit.VALIDATION:
+            self.samples = all_samples[int(len(all_samples) * 0.9):]
+        
         self.split = split
+        logger.info(f"Loaded {len(self.samples)} samples for {split.name} dataset")
 
     def __len__(self) -> int:
         return len(self.samples)
@@ -214,18 +290,14 @@ class TranslationDataset(Dataset):
             pickle.dump(sample["poses"], f)
             temp_path = Path(f.name)
 
-        return (
-            *preprocess_pkl_samples(
-                temp_path,
-                sample["raw_text"],
-            ),
+        src_input, tgt_input = preprocess_pkl_samples(
+            temp_path,
+            sample["raw_text"],
         )
-
-
-def collate_function(samples: list) -> tuple:
-    x_batch = [sample[0] for sample in samples]
-    y_batch = [sample[1] for sample in samples]
-    return x_batch[0], y_batch[0]
+        
+        temp_path.unlink(missing_ok=True)
+        
+        return src_input, tgt_input
 
 
 class DatasetSplit(Enum):
