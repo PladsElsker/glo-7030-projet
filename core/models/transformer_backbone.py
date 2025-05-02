@@ -14,7 +14,6 @@ class BaseTransformerBackbone(nn.Module, ABC):
         self.max_length = max_length
         self.pad_token = -100
         self.criterion = nn.CrossEntropyLoss(label_smoothing=label_smoothing, ignore_index=self.pad_token)
-        self.load_model_and_tokenizer()
 
     @abstractmethod
     def load_model_and_tokenizer(self, path: Optional[Path] = None) -> Tuple[nn.Module, nn.Module]:
@@ -53,9 +52,8 @@ class BaseTransformerBackbone(nn.Module, ABC):
         }
 
     def compute_loss(self, logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
-        flattened_logits = logits.reshape(-1, logits.size(-1))
-        flattened_labels = labels.reshape(-1)
-        return self.criterion(flattened_logits, flattened_labels)
+        logits = logits.permute(0, 2, 1)
+        return self.criterion(logits, labels)
 
 
 class MT5Backbone(BaseTransformerBackbone):

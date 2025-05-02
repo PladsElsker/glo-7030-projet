@@ -56,8 +56,6 @@ def train(  # noqa: PLR0913
     if transformer_type == "mt5":
         translation_transformer = MT5Backbone(language="English")
         translation_transformer.load_model_and_tokenizer()
-        for parameter in translation_transformer.parameters():
-            parameter.requires_grad = False
     elif transformer_type == "t5":
         pass
 
@@ -68,6 +66,9 @@ def train(  # noqa: PLR0913
     if pretrained_encoder is not None:
         pretrained_encoder = Path(pretrained_encoder)
         model.load_state_dict(torch.load(pretrained_encoder, weights_only=True), strict=False)
+
+    for parameter in model.parameters():
+        parameter.requires_grad = True
 
     optimizer = optim.AdamW(params=model.parameters(), lr=learning_rate)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs // gradient_accumulation)
@@ -99,18 +100,17 @@ def execute_training_run(train_args: "TrainingRunArguments") -> None:
         mlflow.set_tracking_uri("http://127.0.0.1:5678")
         mlflow.set_experiment("SignTerpreter")
 
-    training_parameters = (
-        {
-            "epochs": train_args.epochs,
-            "gradient_accumulation": train_args.gradient_accumulation,
-            "optimizer": train_args.optimizer.__class__.__name__,
-            "scheduler": train_args.scheduler.__class__.__name__,
-            "device": str(train_args.device),
-            "save_dir": str(train_args.save_dir),
-        },
-    )
+    training_parameters = {
+        "epochs": train_args.epochs,
+        "gradient_accumulation": train_args.gradient_accumulation,
+        "optimizer": train_args.optimizer.__class__.__name__,
+        "scheduler": train_args.scheduler.__class__.__name__,
+        "device": str(train_args.device),
+        "save_dir": str(train_args.save_dir),
+    }
     if train_args.use_mlflow:
-        mlflow.start_run().__enter__()
+        mlflow_run = mlflow.start_run()
+        mlflow_run.__enter__()
         mlflow.log_params(training_parameters)
     else:
         with Path.open("trained_models/last_train_parameters.json", "w") as f:
@@ -143,7 +143,7 @@ def execute_training_run(train_args: "TrainingRunArguments") -> None:
         logger.info(f"Saved checkpoint to {checkpoint_path}")
 
     if train_args.use_mlflow:
-        mlflow.start_run().__exit__(None, None, None)
+        mlflow_run.__exit__(None, None, None)
 
 
 def train_one_epoch(train_args: "TrainingRunArguments", epoch_id: int) -> float:
@@ -165,7 +165,8 @@ def train_one_epoch(train_args: "TrainingRunArguments", epoch_id: int) -> float:
             if gradient_accumulation_counter >= train_args.gradient_accumulation:
                 train_args.optimizer.zero_grad()
 
-            loss = train_args.model(x, y)["loss"]
+            ret = train_args.model(x, y)
+            loss = ret["loss"]
             loss.backward()
             running_losses.append(loss.item())
 

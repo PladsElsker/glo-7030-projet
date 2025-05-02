@@ -22,7 +22,7 @@
             "console": "integratedTerminal",
             "justMyCode": false,
             "args": [
-                "--dataset", "/mnt/data/plads/open-asl-dwpose", "--save-checkpoint-directory", "./trained_models", "--batch-size", "2"
+                "--dataset", "/mnt/data/plads/open-asl-dwpose", "--save-checkpoint-directory", "./trained_models", "--batch-size", "2", "--mlflow", "--device", "cuda:4"
             ]
         },
         {
