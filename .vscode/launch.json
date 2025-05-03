@@ -26,6 +26,18 @@
             ]
         },
         {
+            "name": "Evaluate SignTerpreter",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "core.evaluate",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": [
+                "--dataset", "/mnt/data/plads/open-asl-dwpose", "--batch-size", "16", "--device", "cuda:4", "--pretrained", "uni_sign/pretrained_weight/Uni-Sign/csl_stage2_weight.pth"
+            ]
+        },
+        {
             "name": "Stage 1 UniSign Pretraining",
             "type": "debugpy",
             "request": "launch",
