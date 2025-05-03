@@ -137,7 +137,7 @@ class EvaluationRunArguments:
 
 class TranslationDataset(Dataset):
     def __init__(self, dataset_path: Path, split: "DatasetSplit") -> None:
-        self.samples = list(dataset_path.glob("*.pkl"))[:16]
+        self.samples = list(dataset_path.glob("*.pkl"))
         self.idx_offset = 0
 
         start_test_index = int(len(self.samples) * 0.8)
