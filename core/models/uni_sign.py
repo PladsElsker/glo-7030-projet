@@ -4,6 +4,7 @@ from types import SimpleNamespace
 
 import torch
 from torch import nn
+from torch.nn.functional import pad
 from torchvision import transforms
 
 from uni_sign.datasets import S2T_Dataset_news
@@ -37,7 +38,41 @@ def preprocess_data(pkl_path: Path, text: str, max_frames: int = 256) -> tuple:
     s.rgb_support = False
 
     pose, rgb = preproc(s, pkl_filename, rgb_filename)
-    return postproc(s, [[pkl_path.stem, pose, text, -1, rgb]])
+    return (*postproc(s, [[pkl_path.stem, pose, text, -1, rgb]]),)
+
+
+def collate_fn(batches: list) -> tuple:
+    src_input = {}
+    tgt_input = {}
+
+    keys = batches[0][0].keys()
+    for key in keys:
+        if key == "attention_mask":
+            max_length = max(len(batch[0]["attention_mask"][0]) for batch in batches)
+            src_input[key] = torch.stack(
+                [pad(batch[0][key].squeeze(0), (0, max_length - batch[0][key].shape[1]), "constant", 0) for batch in batches],
+            )
+        elif isinstance(batches[-1][0][key], torch.Tensor):
+            max_length = max((len(batch[0][key][0]) if len(batch[0][key].shape) > 1 else len(batch[0][key])) for batch in batches)
+            src_input[key] = torch.stack(
+                [pad_with_last(batch[0][key].squeeze(0) if len(batch[0][key].shape) > 1 else batch[0][key], max_length) for batch in batches],
+            )
+        else:
+            src_input[key] = [batch[0][key][0] for batch in batches]
+
+    keys = batches[0][1].keys()
+    for key in keys:
+        tgt_input[key] = [batch[1][key][0] for batch in batches]
+
+    return src_input, tgt_input
+
+
+def pad_with_last(data: torch.Tensor, length: int) -> torch.Tensor:
+    if data.size(0) >= length:
+        return data
+
+    pad = data[-1].expand(length - data.size(0), *data.shape[1:])
+    return torch.cat((data, pad), dim=0)
 
 
 class UniSign(BaseUniSign):
